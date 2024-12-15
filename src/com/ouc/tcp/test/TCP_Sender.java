@@ -12,7 +12,7 @@ import com.ouc.tcp.tool.TCP_TOOL;
 public class TCP_Sender extends TCP_Sender_ADT {
 
     private TCP_PACKET tcpPack;    //待发送的TCP数据报
-    private volatile int flag = 0;
+    private volatile int flag = 1;
     private SenderWindow window = new SenderWindow(client, 16);
 
     /*构造函数*/
@@ -50,7 +50,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
     public void udt_send(TCP_PACKET stcpPack) {
         //设置错误控制标志
         tcpH.setTh_eflag((byte) 2);
-        //System.out.println("to send: "+stcpPack.getTcpH().getTh_seq());
+//        System.out.println("to send: "+stcpPack.getTcpH().getTh_seq());
         //发送数据报
         client.send(stcpPack);
     }

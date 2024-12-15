@@ -23,5 +23,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="TCP_TestSys_Linux" level="project" />
   </component>
 </module>

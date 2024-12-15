@@ -35,13 +35,21 @@ public class SenderWindow {
     public void pushPacket(TCP_PACKET packet) {
         window[rear].setPacket(packet);
         window[rear].setFlag(SenderFlag.READY.ordinal());
-        rear = (rear + 1) % size;
+//        do {
+            rear = (rear + 1) % size;
+//        } while (window[rear].getFlag() != SenderFlag.EMPTY.ordinal());
     }
 
     public TCP_PACKET getPacketToSend(int delay, int period) {
         if (isEmpty() || nextToSend == rear) {
             return null;
         }
+//        while (window[nextToSend].getFlag() != SenderFlag.READY.ordinal()) {
+//            nextToSend = (nextToSend + 1) % size;
+//            if (nextToSend == rear) {
+//                return null;
+//            }
+//        }
         TCP_PACKET pack = window[nextToSend].getPacket();
         window[nextToSend].newTimer();
         window[nextToSend].scheduleTimer(new UDT_RetransTask(client, pack), delay, period);

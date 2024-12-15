@@ -29,8 +29,10 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
         //检查校验码，生成ACK
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
             int bufferResult = window.bufferPacket(sequence, recvPack);
-
-            if (bufferResult == AckFlag.ORDERED.ordinal() || bufferResult == AckFlag.DUPLICATE.ordinal() || bufferResult == AckFlag.IS_BASE.ordinal()) {
+            System.out.println("bufferResult: " + bufferResult);
+            if (bufferResult == AckFlag.ORDERED.ordinal()
+                    || bufferResult == AckFlag.DUPLICATE.ordinal()
+                    || bufferResult == AckFlag.IS_BASE.ordinal()) {
                 tcpH.setTh_ack(recvPack.getTcpH().getTh_seq());
                 ackPack = new TCP_PACKET(tcpH, tcpS, recvPack.getSourceAddr());
                 tcpH.setTh_sum(CheckSum.computeChkSum(ackPack));
@@ -46,11 +48,11 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
             }
 
         }
-        // 错误包不回复 ACK、
+        // 错误包不回复 ACK
 
-        System.out.println();
-
-
+//        System.out.println();
+        System.out.println("Expected: " + (window.getBase() * dataLength + 1));
+//        window.printWindowHumanReadable();
         //交付数据
         deliver_data();
     }
@@ -87,7 +89,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
     //回复ACK报文段
     public void reply(TCP_PACKET replyPack) {
         //设置错误控制标志
-        tcpH.setTh_eflag((byte) 6);    //eFlag=0，信道无错误
+        tcpH.setTh_eflag((byte) 7);    //eFlag=0，信道无错误
 
         //发送数据报
         client.send(replyPack);

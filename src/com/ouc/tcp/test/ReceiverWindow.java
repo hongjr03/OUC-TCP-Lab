@@ -26,6 +26,10 @@ public class ReceiverWindow {
         this.base = 0;
     }
 
+    public int getBase() {
+        return base;
+    }
+
     private int getIdx(int seq) {
         return seq % size;
     }
@@ -34,10 +38,10 @@ public class ReceiverWindow {
         if (seq >= base + size) {
             return AckFlag.DELAYED.ordinal();
         }
-        int idx = getIdx(seq);
-        if (window[idx].getFlag() == ReceiverFlag.BUFFERED.ordinal()) {
+        if (seq < base) {
             return AckFlag.DUPLICATE.ordinal();
         }
+        int idx = getIdx(seq);
         window[idx].setPacket(packet);
         window[idx].setFlag(ReceiverFlag.BUFFERED.ordinal());
         if (seq == base) {

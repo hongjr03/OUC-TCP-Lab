@@ -34,8 +34,12 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
             //回复ACK报文段
             reply(ackPack);
 
-            //如果接收到的包序号和上一个包序号相同，重复包丢弃
-            if (recvPack.getTcpH().getTh_seq() != lastSeq) {
+            //检查序号，接收数据
+            if (recvPack.getTcpH().getTh_seq() == lastSeq) {
+                //重复包丢弃，不做处理
+            } else if (recvPack.getTcpH().getTh_seq() < lastSeq) {
+                //延迟包，不做处理
+            } else {
                 lastSeq = recvPack.getTcpH().getTh_seq();
                 //将接收到的正确有序的数据插入data队列，准备交付
                 dataQueue.add(recvPack.getTcpS().getData());

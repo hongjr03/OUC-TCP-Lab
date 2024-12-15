@@ -9,12 +9,12 @@ import java.io.IOException;
 
 import com.ouc.tcp.client.TCP_Receiver_ADT;
 import com.ouc.tcp.message.*;
-import com.ouc.tcp.tool.TCP_TOOL;
 
 public class TCP_Receiver extends TCP_Receiver_ADT {
 
     private TCP_PACKET ackPack;    //回复的ACK报文段
     int sequence = 1;//用于记录当前待接收的包序号，注意包序号不完全是
+    int lastSeq = 0;//用于记录上一个接收到的包序号
 
     /*构造函数*/
     public TCP_Receiver() {
@@ -34,14 +34,18 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
             //回复ACK报文段
             reply(ackPack);
 
-            //将接收到的正确有序的数据插入data队列，准备交付
-            dataQueue.add(recvPack.getTcpS().getData());
-            sequence++;
+            //如果接收到的包序号和上一个包序号相同，重复包丢弃
+            if (recvPack.getTcpH().getTh_seq() != lastSeq) {
+                lastSeq = recvPack.getTcpH().getTh_seq();
+                //将接收到的正确有序的数据插入data队列，准备交付
+                dataQueue.add(recvPack.getTcpS().getData());
+                sequence++;
+            }
         } else {
             System.out.println("Recieve Computed: " + CheckSum.computeChkSum(recvPack));
             System.out.println("Recieved Packet" + recvPack.getTcpH().getTh_sum());
             System.out.println("Problem: Packet Number: " + recvPack.getTcpH().getTh_seq() + " + InnerSeq:  " + sequence);
-            tcpH.setTh_ack(-1);
+            tcpH.setTh_ack(lastSeq); // 无需使用 NAK
             ackPack = new TCP_PACKET(tcpH, tcpS, recvPack.getSourceAddr());
             tcpH.setTh_sum(CheckSum.computeChkSum(ackPack));
             //回复ACK报文段
@@ -52,8 +56,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
 
 
         //交付数据（每20组数据交付一次）
-        if (dataQueue.size() == 20)
-            deliver_data();
+        if (dataQueue.size() == 20) deliver_data();
     }
 
     @Override
@@ -88,7 +91,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
     //回复ACK报文段
     public void reply(TCP_PACKET replyPack) {
         //设置错误控制标志
-        tcpH.setTh_eflag((byte) 0);    //eFlag=0，信道无错误
+        tcpH.setTh_eflag((byte) 1);    //eFlag=0，信道无错误
 
         //发送数据报
         client.send(replyPack);

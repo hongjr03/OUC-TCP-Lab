@@ -32,9 +32,9 @@ public class SenderWindow {
         return base == rear;
     }
 
-    public void bufferPacket(TCP_PACKET packet) {
+    public void pushPacket(TCP_PACKET packet) {
         window[rear].setPacket(packet);
-        window[rear].setFlag(Flag.WAIT.ordinal());
+        window[rear].setFlag(SenderFlag.READY.ordinal());
         rear = (rear + 1) % size;
     }
 
@@ -49,25 +49,17 @@ public class SenderWindow {
         return pack;
     }
 
-    public void setPacketAcked(int seq) {
+    public void setPacketConfirmed(int seq) {
         for (int i = base; i != rear; i = (i + 1) % size) {
             if (window[i].getPacket().getTcpH().getTh_seq() == seq) {
                 window[i].cancelTimer();
-                window[i].setFlag(Flag.ACKED.ordinal());
+                window[i].setFlag(SenderFlag.CONFIRMED.ordinal());
                 break;
             }
         }
-        while (base != rear && window[base].getFlag() == Flag.ACKED.ordinal()) {
+        while (base != rear && window[base].getFlag() == SenderFlag.CONFIRMED.ordinal()) {
             base = (base + 1) % size;
         }
     }
-
-
-
-
-
-
-
-
 
 }

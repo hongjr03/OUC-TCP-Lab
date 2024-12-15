@@ -4,11 +4,11 @@ import com.ouc.tcp.client.UDT_RetransTask;
 import com.ouc.tcp.client.UDT_Timer;
 import com.ouc.tcp.message.TCP_PACKET;
 
-enum Flag {
-    EMPTY, WAIT, ACKED
+enum SenderFlag {
+    EMPTY, READY, CONFIRMED
     // EMPTY: 窗口中的元素为空
-    // WAIT: 窗口中的元素还未被确认
-    // ACKED: 窗口中的元素已经被发送且已经被确认
+    // READY: 窗口中的元素还未被确认（可能已经被发送）
+    // CONFIRMED: 窗口中的元素已经被发送且已经被确认
 }
 
 public class SenderElem {
@@ -18,7 +18,7 @@ public class SenderElem {
 
     public SenderElem() {
         this.packet = null;
-        this.flag = Flag.EMPTY.ordinal();
+        this.flag = SenderFlag.EMPTY.ordinal();
         this.timer = null;
     }
 

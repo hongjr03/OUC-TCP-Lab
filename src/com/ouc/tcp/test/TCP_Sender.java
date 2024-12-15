@@ -4,10 +4,7 @@
 package com.ouc.tcp.test;
 
 import com.ouc.tcp.client.TCP_Sender_ADT;
-import com.ouc.tcp.client.UDT_RetransTask;
-import com.ouc.tcp.client.UDT_Timer;
 import com.ouc.tcp.message.*;
-import com.ouc.tcp.tool.TCP_TOOL;
 
 public class TCP_Sender extends TCP_Sender_ADT {
 
@@ -38,7 +35,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
             flag = 0;
         }
         while (flag == 0) ;
-        window.bufferPacket(tcpPack);
+        window.pushPacket(tcpPack);
 
         TCP_PACKET pack = window.getPacketToSend(1000, 1000);
         udt_send(pack);
@@ -62,7 +59,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
         //循环检查确认号对列中是否有新收到的ACK
         if (!ackQueue.isEmpty()) {
             int currentAck = ackQueue.poll();
-            window.setPacketAcked(currentAck);
+            window.setPacketConfirmed(currentAck);
             if (!window.isFull()) {
                 flag = 1;
             }

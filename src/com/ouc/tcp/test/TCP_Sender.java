@@ -14,6 +14,9 @@ public class TCP_Sender extends TCP_Sender_ADT {
     private TCP_PACKET tcpPack;    //待发送的TCP数据报
     private volatile int flag = 0;
 
+    //计时器
+    UDT_Timer timer = new UDT_Timer();
+
     /*构造函数*/
     public TCP_Sender() {
         super();    //调用超类构造函数
@@ -31,6 +34,11 @@ public class TCP_Sender extends TCP_Sender_ADT {
         //更新带有checksum的TCP 报文头
         tcpH.setTh_sum(CheckSum.computeChkSum(tcpPack));
         tcpPack.setTcpH(tcpH);
+
+        // 对每个数据包设置定时器
+        //重传任务
+        UDT_RetransTask retransTask = new UDT_RetransTask(client, tcpPack);
+        timer.schedule(retransTask, 1000, 1000); // 1s后开始重传，每1s重传一次
 
         //发送TCP数据报
         udt_send(tcpPack);
@@ -59,15 +67,14 @@ public class TCP_Sender extends TCP_Sender_ADT {
         if (!ackQueue.isEmpty()) {
             int currentAck = ackQueue.poll();
             // System.out.println("CurrentAck: "+currentAck);
+            // 接收到的ACK号等于当前发送的包号，说明发送成功
             if (currentAck == tcpPack.getTcpH().getTh_seq()) {
+                timer.cancel(); // 取消定时器
                 System.out.println("Clear: " + tcpPack.getTcpH().getTh_seq());
                 flag = 1;
                 //break;
-            } else {
-                System.out.println("Retransmit: " + tcpPack.getTcpH().getTh_seq());
-                udt_send(tcpPack);
-                flag = 0;
             }
+            // 不等于，说明发送失败，由计时器触发重传
         }
     }
 

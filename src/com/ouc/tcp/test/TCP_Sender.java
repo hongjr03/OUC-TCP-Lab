@@ -15,7 +15,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
     private volatile int flag = 0;
 
     //计时器
-    UDT_Timer timer = new UDT_Timer();
+    UDT_Timer timer;
 
     /*构造函数*/
     public TCP_Sender() {
@@ -37,6 +37,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
 
         // 对每个数据包设置定时器
         //重传任务
+        timer = new UDT_Timer();
         UDT_RetransTask retransTask = new UDT_RetransTask(client, tcpPack);
         timer.schedule(retransTask, 1000, 1000); // 1s后开始重传，每1s重传一次
 

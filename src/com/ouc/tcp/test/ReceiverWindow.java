@@ -51,8 +51,10 @@ public class ReceiverWindow {
     public TCP_PACKET getPacketToDeliver() {
         if (window[getIdx(base)].getFlag() == ReceiverFlag.BUFFERED.ordinal()) {
             int idx = getIdx(base);
+            TCP_PACKET packet = window[idx].getPacket();
             base++;
-            return window[idx].getPacket();
+            window[idx].reset();
+            return packet;
         }
         return null;
     }

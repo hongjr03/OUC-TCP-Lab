@@ -18,6 +18,11 @@ public class ReceiverElem {
         this.flag = ReceiverFlag.WAIT.ordinal();
     }
 
+    public void reset() {
+        this.packet = null;
+        this.flag = ReceiverFlag.WAIT.ordinal();
+    }
+
     public void setPacket(TCP_PACKET packet) {
         try {
             this.packet = packet.clone();
@@ -27,7 +32,11 @@ public class ReceiverElem {
     }
 
     public TCP_PACKET getPacket() {
-        return packet;
+        try {
+            return packet.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void setFlag(int ordinal) {

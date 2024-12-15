@@ -12,14 +12,12 @@ enum AckFlag {
 }
 
 public class ReceiverWindow {
-    private Client client;
-    private int size;
-    private ReceiverElem[] window;
+    private final int size;
+    private final ReceiverElem[] window;
     private int base; // 窗口的基序号，即下一个期望接收的包的序号
 
 
-    public ReceiverWindow(Client client, int size) {
-        this.client = client;
+    public ReceiverWindow(int size) {
         this.size = size;
         this.window = new ReceiverElem[size];
         for (int i = 0; i < size; i++) {

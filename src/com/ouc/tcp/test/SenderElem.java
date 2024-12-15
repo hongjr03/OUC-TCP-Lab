@@ -22,6 +22,11 @@ public class SenderElem {
         this.timer = null;
     }
 
+    public void reset() {
+        this.packet = null;
+        this.flag = SenderFlag.EMPTY.ordinal();
+    }
+
     public TCP_PACKET getPacket() {
         return packet;
     }

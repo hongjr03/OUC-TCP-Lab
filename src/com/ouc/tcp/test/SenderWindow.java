@@ -51,13 +51,14 @@ public class SenderWindow {
 
     public void setPacketConfirmed(int seq) {
         for (int i = base; i != rear; i = (i + 1) % size) {
-            if (window[i].getPacket().getTcpH().getTh_seq() == seq) {
+            if (window[i].getPacket().getTcpH().getTh_seq() == seq && window[i].getFlag() == SenderFlag.READY.ordinal()) {
                 window[i].cancelTimer();
                 window[i].setFlag(SenderFlag.CONFIRMED.ordinal());
                 break;
             }
         }
         while (base != rear && window[base].getFlag() == SenderFlag.CONFIRMED.ordinal()) {
+            window[base].reset();
             base = (base + 1) % size;
         }
     }

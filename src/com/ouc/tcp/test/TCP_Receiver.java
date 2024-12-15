@@ -13,7 +13,7 @@ import com.ouc.tcp.message.*;
 public class TCP_Receiver extends TCP_Receiver_ADT {
 
     private TCP_PACKET ackPack;    //回复的ACK报文段
-    private ReceiverWindow window = new ReceiverWindow(client, 16);
+    private ReceiverWindow window = new ReceiverWindow(16);
 
     /*构造函数*/
     public TCP_Receiver() {
@@ -31,7 +31,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
             int bufferResult = window.bufferPacket(sequence, recvPack);
 
             if (bufferResult == AckFlag.ORDERED.ordinal() || bufferResult == AckFlag.DUPLICATE.ordinal() || bufferResult == AckFlag.IS_BASE.ordinal()) {
-                tcpH.setTh_ack(sequence * dataLength + 1);
+                tcpH.setTh_ack(recvPack.getTcpH().getTh_seq());
                 ackPack = new TCP_PACKET(tcpH, tcpS, recvPack.getSourceAddr());
                 tcpH.setTh_sum(CheckSum.computeChkSum(ackPack));
                 reply(ackPack);
@@ -51,8 +51,8 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
         System.out.println();
 
 
-        //交付数据（每20组数据交付一次）
-        if (dataQueue.size() == 20) deliver_data();
+        //交付数据
+        deliver_data();
     }
 
     @Override

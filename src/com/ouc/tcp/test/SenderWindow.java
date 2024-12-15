@@ -10,8 +10,10 @@ public class SenderWindow {
     private int base;
     private int nextToSend; // 下一个要发送的元素的下标
     private int rear; // 窗口的最后一个元素的下标
+    private Client client;
 
-    public SenderWindow(int size) {
+    public SenderWindow(Client client, int size) {
+        this.client = client;
         this.size = size;
         this.window = new SenderElem[size];
         for (int i = 0; i < size; i++) {
@@ -36,7 +38,7 @@ public class SenderWindow {
         rear = (rear + 1) % size;
     }
 
-    public TCP_PACKET getPacketToSend(Client client, int delay, int period) {
+    public TCP_PACKET getPacketToSend(int delay, int period) {
         if (isEmpty() || nextToSend == rear) {
             return null;
         }

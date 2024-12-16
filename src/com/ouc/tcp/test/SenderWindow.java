@@ -24,8 +24,13 @@ public class SenderWindow {
         this.rear = 0;
     }
 
+    private int getIdx(int seq) {
+        return seq % size;
+    }
+
     public boolean isFull() {
-        return (rear + 1) % size == base;
+//        return (rear + 1) % size == base;
+        return rear - base == size;
     }
 
     public boolean isEmpty() {
@@ -33,15 +38,18 @@ public class SenderWindow {
     }
 
     public void pushPacket(TCP_PACKET packet) {
-        window[rear].setPacket(packet);
-        window[rear].setFlag(SenderFlag.READY.ordinal());
+        int idx = getIdx(rear);
+        window[idx].setPacket(packet);
+        window[idx].setFlag(SenderFlag.READY.ordinal());
 //        do {
-            rear = (rear + 1) % size;
+        rear++;
+
 //        } while (window[rear].getFlag() != SenderFlag.EMPTY.ordinal());
     }
 
     public TCP_PACKET getPacketToSend(int delay, int period) {
         if (isEmpty() || nextToSend == rear) {
+            // 窗口为空或者窗口中的所有元素都已经发送
             return null;
         }
 //        while (window[nextToSend].getFlag() != SenderFlag.READY.ordinal()) {
@@ -50,24 +58,27 @@ public class SenderWindow {
 //                return null;
 //            }
 //        }
-        TCP_PACKET pack = window[nextToSend].getPacket();
-        window[nextToSend].newTimer();
-        window[nextToSend].scheduleTimer(new UDT_RetransTask(client, pack), delay, period);
-        nextToSend = (nextToSend + 1) % size;
+        int idx = getIdx(nextToSend);
+        TCP_PACKET pack = window[idx].getPacket();
+        window[idx].newTimer();
+        window[idx].scheduleTimer(new UDT_RetransTask(client, pack), delay, period);
+        nextToSend++;
         return pack;
     }
 
     public void setPacketConfirmed(int seq) {
-        for (int i = base; i != rear; i = (i + 1) % size) {
-            if (window[i].getPacket().getTcpH().getTh_seq() == seq && window[i].getFlag() == SenderFlag.READY.ordinal()) {
-                window[i].cancelTimer();
-                window[i].setFlag(SenderFlag.CONFIRMED.ordinal());
+        for (int i = base; i != rear; i++) {
+            int idx = getIdx(i);
+            if (window[idx].getPacket().getTcpH().getTh_seq() == seq && window[idx].getFlag() == SenderFlag.READY.ordinal()) {
+                window[idx].cancelTimer();
+                window[idx].setFlag(SenderFlag.CONFIRMED.ordinal());
                 break;
             }
         }
-        while (base != rear && window[base].getFlag() == SenderFlag.CONFIRMED.ordinal()) {
-            window[base].reset();
-            base = (base + 1) % size;
+        while (base != rear && window[getIdx(base)].getFlag() == SenderFlag.CONFIRMED.ordinal()) {
+            int idx = getIdx(base);
+            window[idx].reset();
+            base++;
         }
     }
 

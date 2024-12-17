@@ -1,5 +1,5 @@
-/***************************2.1: ACK/NACK*****************/
-/***** Feng Hong; 2015-12-09******************************/
+/***************************2.1: ACK/NACK*****************
+ ***** Feng Hong; 2015-12-09******************************/
 package com.ouc.tcp.test;
 
 import java.io.BufferedWriter;
@@ -15,8 +15,8 @@ import com.ouc.tcp.message.*;
 public class TCP_Receiver extends TCP_Receiver_ADT {
 
     private TCP_PACKET ackPack;    //回复的ACK报文段
-    private ReceiverWindow window = new ReceiverWindow(16);
-    private UDT_Timer timer = new UDT_Timer();
+    private final ReceiverWindow window = new ReceiverWindow(16);
+//    private UDT_Timer timer = new UDT_Timer();
 
     /*构造函数*/
     public TCP_Receiver() {
@@ -27,19 +27,11 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
     @Override
     //接收到数据报：检查校验和，设置回复的ACK报文段
     public void rdt_recv(TCP_PACKET recvPack) {
-        // 等待 500ms，然后发回 ACK
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                reply(ackPack);
-                timer.cancel();
-                timer = new UDT_Timer();
-            }
-        }, 500);
+
         int dataLength = recvPack.getTcpS().getData().length;
         //检查校验码，生成ACK
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
-            int bufferResult = 0;
+            int bufferResult;
             try {
                 bufferResult = window.bufferPacket(recvPack.clone());
             } catch (CloneNotSupportedException e) {
@@ -58,6 +50,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
             }
 
         }
+        reply(ackPack);    //回复ACK报文段
         // 错误包不回复 ACK
 
 //        System.out.println();
@@ -82,8 +75,8 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
                 int[] data = dataQueue.poll();
 
                 //将数据写入文件
-                for (int i = 0; i < data.length; i++) {
-                    writer.write(data[i] + "\n");
+                for (int datum : data) {
+                    writer.write(datum + "\n");
                 }
 
                 writer.flush();        //清空输出缓存

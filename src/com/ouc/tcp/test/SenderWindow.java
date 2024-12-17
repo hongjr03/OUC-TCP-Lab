@@ -20,8 +20,6 @@ public class SenderWindow {
     private final int period = 1000;
     private final TCP_Sender sender;
 
-    private final int length = 100;
-
     private int lastAck = -1;
     private int lastAckCount = 0;
     private final int lastAckCountLimit = 3;

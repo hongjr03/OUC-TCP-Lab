@@ -128,8 +128,8 @@ public class SenderWindow {
         }
 
         if (lastAckCount >= lastAckCountLimit) {
-            logger.log(Level.INFO, "[Fast Recovery] ssthresh " + ssthresh + " -> " + ssthresh / 2);
-            ssthresh = Math.max(cwnd / 2, 1);
+            logger.log(Level.INFO, "[Fast Recovery] ssthresh " + ssthresh + " -> " + cwnd / 2);
+            ssthresh = cwnd / 2;
             logger.log(Level.INFO, "[Fast Recovery] cwnd " + cwnd + " -> " + 1);
             cwnd = 1;
             resendPacket(ack);

@@ -1,8 +1,9 @@
 package com.ouc.tcp.test;
 
-import com.ouc.tcp.client.Client;
-import com.ouc.tcp.client.UDT_RetransTask;
+import com.ouc.tcp.client.UDT_Timer;
 import com.ouc.tcp.message.TCP_PACKET;
+
+import java.util.TimerTask;
 
 public class SenderWindow {
     private int size;
@@ -10,8 +11,33 @@ public class SenderWindow {
     private int base;
     private int nextToSend; // 下一个要发送的元素的下标
     private int rear; // 窗口的最后一个元素的下标
+    private UDT_Timer timer;
+    private int delay = 1000;
+    private int period = 1000;
+    private TCP_Sender sender;
 
-    public SenderWindow(int size) {
+    public class GBN_RetransTask extends TimerTask {
+        private TCP_Sender sender;
+        private SenderWindow window;
+
+        public GBN_RetransTask(TCP_Sender sender, SenderWindow window) {
+            this.sender = sender;
+            this.window = window;
+        }
+
+        public void run() {
+            window.sendWindow();
+        }
+    }
+
+    public void resetTimer() {
+        timer.cancel();
+        timer = new UDT_Timer();
+        timer.schedule(new GBN_RetransTask(sender, this), delay, period);
+    }
+
+    public SenderWindow(TCP_Sender sender, int size) {
+        this.sender = sender;
         this.size = size;
         this.window = new SenderElem[size];
         for (int i = 0; i < size; i++) {
@@ -20,6 +46,7 @@ public class SenderWindow {
         this.base = 0;
         this.nextToSend = 0;
         this.rear = 0;
+        this.timer = new UDT_Timer();
     }
 
     private int getIdx(int seq) {
@@ -38,6 +65,10 @@ public class SenderWindow {
         return nextToSend == rear;
     }
 
+    public boolean atBase() {
+        return nextToSend == base;
+    }
+
     public void pushPacket(TCP_PACKET packet) {
         int idx = getIdx(rear);
         window[idx].setPacket(packet);
@@ -45,7 +76,14 @@ public class SenderWindow {
         rear++;
     }
 
-    public void sendPacket(TCP_Sender sender, Client client, int delay, int period) {
+    public void sendWindow() {
+        nextToSend = base;
+        while (nextToSend < rear) {
+            sendPacket();
+        }
+    }
+
+    public void sendPacket() {
         if (isEmpty() || isAllSent()) {
             // 窗口为空或者窗口中的所有元素都已经发送
             return;
@@ -53,25 +91,27 @@ public class SenderWindow {
 
         int idx = getIdx(nextToSend);
         TCP_PACKET pack = window[idx].getPacket();
-        window[idx].newTimer();
-        window[idx].scheduleTimer(new UDT_RetransTask(client, pack), delay, period);
+
+        // 如果是第一个元素，启动定时器
+        if (atBase()) {
+            timer.schedule(new GBN_RetransTask(sender, this), delay, period);
+        }
+
         nextToSend++;
         sender.udt_send(pack);
     }
 
-    public void setPacketAcked(int seq) {
-        for (int i = base; i != rear; i++) {
-            int idx = getIdx(i);
-            if (window[idx].getPacket().getTcpH().getTh_seq() == seq && !window[idx].isAcked()) {
-                window[idx].ack();
-                break;
-            }
-        }
-        while (base != rear && window[getIdx(base)].getFlag() == SenderFlag.ACKED.ordinal()) {
-            int idx = getIdx(base);
-            window[idx].reset();
+    public void setPacketAcked(int ack) {
+        int idx = getIdx(base);
+        while (
+                window[idx].getPacket().getTcpH().getTh_seq() <= ack && !window[idx].isAcked() && base < rear
+        ) {
+            window[idx].setAcked();
             base++;
+            idx = getIdx(base);
         }
+
+        resetTimer();
     }
 
 }

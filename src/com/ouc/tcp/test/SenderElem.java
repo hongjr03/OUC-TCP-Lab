@@ -11,12 +11,10 @@ enum SenderFlag {
 public class SenderElem {
     private TCP_PACKET packet;
     private int flag;
-    private UDT_Timer timer;
 
     public SenderElem() {
         this.packet = null;
         this.flag = SenderFlag.NOT_ACKED.ordinal();
-        this.timer = null;
     }
 
     public void reset() {
@@ -40,24 +38,11 @@ public class SenderElem {
         this.flag = flag;
     }
 
-    public int getFlag() {
-        return flag;
-    }
-
-    public void newTimer() {
-        this.timer = new UDT_Timer();
-    }
-
-    public void scheduleTimer(UDT_RetransTask retransTask, int delay, int period) {
-        this.timer.schedule(retransTask, delay, period);
-    }
-
     public boolean isAcked() {
         return flag == SenderFlag.ACKED.ordinal();
     }
 
-    public void ack() {
-        this.flag = SenderFlag.ACKED.ordinal();
-        this.timer.cancel();
+    public void setAcked() {
+        flag = SenderFlag.ACKED.ordinal();
     }
 }

@@ -23,6 +23,20 @@ public class SenderWindow {
     private int lastAckCount = 0;
     private final int lastAckCountLimit = 3;
 
+    private static final Logger logger = Logger.getLogger(SenderWindow.class.getName());
+
+    static {
+        try {
+            // Create a FileHandler that writes log to a file called "sender.log"
+            FileHandler fileHandler = new FileHandler("sender.log", true);
+            fileHandler.setFormatter(new SimpleFormatter());
+            logger.addHandler(fileHandler);
+            logger.setLevel(Level.ALL);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to initialize logger handler.", e);
+        }
+    }
+
     public static class GBN_RetransTask extends TimerTask {
         private final SenderWindow window;
 
@@ -68,6 +82,7 @@ public class SenderWindow {
 
     public void sendWindow() {
         // 发送窗口中的数据
+        logger.log(Level.INFO, "[cwnd] " + cwnd + ", [ssthresh] " + ssthresh);
         for (SenderElem elem : window) {
             if (!elem.isAcked()) {
                 sender.udt_send(elem.getPacket());
@@ -97,9 +112,11 @@ public class SenderWindow {
         resetTimer();
 
         if (cwnd < ssthresh) {
+            logger.log(Level.INFO, "[Slow Start] cwnd " + cwnd + " -> " + (cwnd + 1));
             cwnd++;
         } else if (ack >= nextAck) {
             nextAck += cwnd * length;
+            logger.log(Level.INFO, "[Congestion Avoidance] cwnd " + cwnd + " -> " + (cwnd + 1));
             cwnd++;
         }
 
@@ -111,7 +128,9 @@ public class SenderWindow {
         }
 
         if (lastAckCount >= lastAckCountLimit) {
+            logger.log(Level.INFO, "[Fast Recovery] ssthresh " + ssthresh + " -> " + ssthresh / 2);
             ssthresh = Math.max(cwnd / 2, 1);
+            logger.log(Level.INFO, "[Fast Recovery] cwnd " + cwnd + " -> " + 1);
             cwnd = 1;
             resendPacket(ack);
         }

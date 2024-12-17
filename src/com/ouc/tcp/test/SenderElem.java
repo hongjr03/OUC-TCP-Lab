@@ -5,10 +5,7 @@ import com.ouc.tcp.client.UDT_Timer;
 import com.ouc.tcp.message.TCP_PACKET;
 
 enum SenderFlag {
-    EMPTY, READY, CONFIRMED
-    // EMPTY: 窗口中的元素为空
-    // READY: 窗口中的元素还未被确认（可能已经被发送）
-    // CONFIRMED: 窗口中的元素已经被发送且已经被确认
+    NOT_ACKED, ACKED
 }
 
 public class SenderElem {
@@ -18,13 +15,13 @@ public class SenderElem {
 
     public SenderElem() {
         this.packet = null;
-        this.flag = SenderFlag.EMPTY.ordinal();
+        this.flag = SenderFlag.NOT_ACKED.ordinal();
         this.timer = null;
     }
 
     public void reset() {
         this.packet = null;
-        this.flag = SenderFlag.EMPTY.ordinal();
+        this.flag = SenderFlag.NOT_ACKED.ordinal();
     }
 
     public TCP_PACKET getPacket() {
@@ -55,7 +52,12 @@ public class SenderElem {
         this.timer.schedule(retransTask, delay, period);
     }
 
-    public void cancelTimer() {
+    public boolean isAcked() {
+        return flag == SenderFlag.ACKED.ordinal();
+    }
+
+    public void ack() {
+        this.flag = SenderFlag.ACKED.ordinal();
         this.timer.cancel();
     }
 }

@@ -6,11 +6,15 @@ package com.ouc.tcp.test;
 import com.ouc.tcp.client.TCP_Sender_ADT;
 import com.ouc.tcp.message.*;
 
+enum WindowFlag {
+    FULL, NOT_FULL
+}
+
 public class TCP_Sender extends TCP_Sender_ADT {
 
     private TCP_PACKET tcpPack;    //待发送的TCP数据报
     private volatile int flag = 1;
-    private SenderWindow window = new SenderWindow(client, 16);
+    private final SenderWindow window = new SenderWindow(16);
 
     /*构造函数*/
     public TCP_Sender() {
@@ -32,13 +36,13 @@ public class TCP_Sender extends TCP_Sender_ADT {
 
         if (window.isFull()) {
             //窗口满，等待窗口滑动
-            flag = 0;
+            flag = WindowFlag.FULL.ordinal();
         }
-        while (flag == 0) ;
+        while (flag == WindowFlag.FULL.ordinal()) {
+            //等待窗口滑动
+        }
         window.pushPacket(tcpPack);
-
-        TCP_PACKET pack = window.getPacketToSend(1000, 1000);
-        udt_send(pack);
+        window.sendPacket(this, client, 1000, 1000);
 
     }
 
@@ -59,9 +63,9 @@ public class TCP_Sender extends TCP_Sender_ADT {
         //循环检查确认号对列中是否有新收到的ACK
         if (!ackQueue.isEmpty()) {
             int currentAck = ackQueue.poll();
-            window.setPacketConfirmed(currentAck);
+            window.setPacketAcked(currentAck);
             if (!window.isFull()) {
-                flag = 1;
+                flag = WindowFlag.NOT_FULL.ordinal();
             }
         }
     }

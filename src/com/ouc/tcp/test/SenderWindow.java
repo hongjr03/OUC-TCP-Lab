@@ -14,6 +14,7 @@ public class SenderWindow {
     private UDT_Timer timer;
     private int delay = 1000;
     private int period = 1000;
+    private TCP_Sender sender;
 
     public class GBN_RetransTask extends TimerTask {
         private TCP_Sender sender;
@@ -25,17 +26,18 @@ public class SenderWindow {
         }
 
         public void run() {
-            window.sendWindow(sender);
+            window.sendWindow();
         }
     }
 
-    public void resetTimer(TCP_Sender sender) {
+    public void resetTimer() {
         timer.cancel();
         timer = new UDT_Timer();
         timer.schedule(new GBN_RetransTask(sender, this), delay, period);
     }
 
     public SenderWindow(TCP_Sender sender, int size) {
+        this.sender = sender;
         this.size = size;
         this.window = new SenderElem[size];
         for (int i = 0; i < size; i++) {
@@ -74,14 +76,14 @@ public class SenderWindow {
         rear++;
     }
 
-    public void sendWindow(TCP_Sender sender) {
+    public void sendWindow() {
         nextToSend = base;
         while (nextToSend < rear) {
-            sendPacket(sender);
+            sendPacket();
         }
     }
 
-    public void sendPacket(TCP_Sender sender) {
+    public void sendPacket() {
         if (isEmpty() || isAllSent()) {
             // 窗口为空或者窗口中的所有元素都已经发送
             return;
@@ -99,7 +101,7 @@ public class SenderWindow {
         sender.udt_send(pack);
     }
 
-    public void setPacketAcked(TCP_Sender sender, int ack) {
+    public void setPacketAcked(int ack) {
         int idx = getIdx(base);
         while (
                 window[idx].getPacket().getTcpH().getTh_seq() <= ack && !window[idx].isAcked() && base < rear
@@ -109,7 +111,7 @@ public class SenderWindow {
             idx = getIdx(base);
         }
 
-        resetTimer(sender);
+        resetTimer();
     }
 
 }

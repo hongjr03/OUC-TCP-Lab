@@ -17,6 +17,11 @@ public class SenderElem {
         this.flag = SenderFlag.NOT_ACKED.ordinal();
     }
 
+    public SenderElem(TCP_PACKET packet, int flag) {
+        this.packet = packet;
+        this.flag = flag;
+    }
+
     public void reset() {
         this.packet = null;
         this.flag = SenderFlag.NOT_ACKED.ordinal();

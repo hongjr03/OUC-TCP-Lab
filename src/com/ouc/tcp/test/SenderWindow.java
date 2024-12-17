@@ -3,14 +3,18 @@ package com.ouc.tcp.test;
 import com.ouc.tcp.client.UDT_Timer;
 import com.ouc.tcp.message.TCP_PACKET;
 
+import java.io.IOException;
+import java.util.logging.*;
 import java.util.TimerTask;
+import java.util.concurrent.LinkedBlockingDeque;
 
 public class SenderWindow {
-    private final int size;
-    private final SenderElem[] window;
-    private int base;
-    private int nextToSend; // 下一个要发送的元素的下标
-    private int rear; // 窗口的最后一个元素的下标
+    private final LinkedBlockingDeque<SenderElem> window;
+
+    private int cwnd = 1;
+    private int ssthresh = 16;
+    private int nextAck = 0; // 拥塞避免，下一次增大窗口时收到的 ack
+
     private UDT_Timer timer;
     private final int delay = 1000;
     private final int period = 1000;
@@ -39,86 +43,65 @@ public class SenderWindow {
         }
     }
 
-    public SenderWindow(TCP_Sender sender, int size) {
+    public SenderWindow(TCP_Sender sender) {
         this.sender = sender;
-        this.size = size;
-        this.window = new SenderElem[size];
-        for (int i = 0; i < size; i++) {
-            this.window[i] = new SenderElem();
-        }
-        this.base = 0;
-        this.nextToSend = 0;
-        this.rear = 0;
+        this.window = new LinkedBlockingDeque<>();
         this.timer = new UDT_Timer();
     }
 
-    private int getIdx(int seq) {
-        return seq % size;
-    }
-
-    public boolean isFull() {
-        return rear - base == size;
+    public boolean isCwndFull() {
+        return window.size() >= cwnd;
     }
 
     public boolean isEmpty() {
-        return base == rear;
-    }
-
-    public boolean isAllSent() {
-        return nextToSend == rear;
-    }
-
-    public boolean atBase() {
-        return nextToSend == base;
+        return window.isEmpty();
     }
 
     public void pushPacket(TCP_PACKET packet) {
-        int idx = getIdx(rear);
-        window[idx].setPacket(packet);
-        window[idx].setFlag(SenderFlag.NOT_ACKED.ordinal());
-        rear++;
+        // 如果窗口为空，启动定时器
+        if (isEmpty()) {
+            timer = new UDT_Timer();
+            timer.schedule(new GBN_RetransTask(this), delay, period);
+        }
+        window.push(new SenderElem(packet, SenderFlag.NOT_ACKED.ordinal()));
     }
 
     public void sendWindow() {
-        nextToSend = base;
-        while (nextToSend < rear) {
-            sendPacket();
+        // 发送窗口中的数据
+        for (SenderElem elem : window) {
+            if (!elem.isAcked()) {
+                sender.udt_send(elem.getPacket());
+            }
         }
     }
 
-    public void sendPacket() {
-        if (isEmpty() || isAllSent()) {
-            // 窗口为空或者窗口中的所有元素都已经发送
-            return;
+    private void resendPacket(int ack) {
+        for (SenderElem elem : window) {
+            if (elem.getPacket().getTcpH().getTh_seq() > ack) {
+                sender.udt_send(elem.getPacket());
+                break;
+            }
         }
-
-        int idx = getIdx(nextToSend);
-        TCP_PACKET pack = window[idx].getPacket();
-
-        // 如果是第一个元素，启动定时器
-        if (atBase()) {
-            timer.schedule(new GBN_RetransTask(this), delay, period);
-        }
-
-        nextToSend++;
-        sender.udt_send(pack);
     }
 
-    private void resendPacket(int idx) {
-        sender.udt_send(window[idx].getPacket());
-    }
-
-    public void setPacketAcked(int ack) {
-        int idx = getIdx(base);
-        while (
-                window[idx].getPacket().getTcpH().getTh_seq() <= ack && !window[idx].isAcked() && base < rear
-        ) {
-            window[idx].setAcked();
-            base++;
-            idx = getIdx(base);
+    public void setPacketAcked(int ack, int length) {
+        for (SenderElem elem : window) {
+            if (elem.getPacket().getTcpH().getTh_seq() <= ack) {
+                elem.setAcked();
+                window.remove(elem);
+                continue;
+            }
+            break;
         }
 
         resetTimer();
+
+        if (cwnd < ssthresh) {
+            cwnd++;
+        } else if (ack >= nextAck) {
+            nextAck += cwnd * length;
+            cwnd++;
+        }
 
         if (ack == lastAck) {
             lastAckCount++;
@@ -128,8 +111,12 @@ public class SenderWindow {
         }
 
         if (lastAckCount >= lastAckCountLimit) {
-            resendPacket(getIdx(base));
+            ssthresh = Math.max(cwnd / 2, 1);
+            cwnd = 1;
+            resendPacket(ack);
         }
+
+
     }
 
 }

@@ -77,7 +77,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
         //处理ACK报文
         if (!ackQueue.isEmpty()) {
             int currentAck = ackQueue.poll();
-            window.setPacketAcked(currentAck, 100);
+            window.setPacketAcked(currentAck);
         }
         if (!window.isCwndFull()) {
             flag = WindowFlag.NOT_FULL.ordinal();

@@ -12,13 +12,16 @@ public class SenderWindow {
     private final LinkedBlockingDeque<SenderElem> window;
 
     private int cwnd = 1;
+    private double dCwnd = 1.0;
     private int ssthresh = 16;
-    private int nextAck = 0; // 拥塞避免，下一次增大窗口时收到的 ack
 
     private UDT_Timer timer;
     private final int delay = 1000;
     private final int period = 1000;
     private final TCP_Sender sender;
+
+    private final int length = 100;
+
     private int lastAck = -1;
     private int lastAckCount = 0;
     private final int lastAckCountLimit = 3;
@@ -99,7 +102,7 @@ public class SenderWindow {
         }
     }
 
-    public void setPacketAcked(int ack, int length) {
+    public void setPacketAcked(int ack) {
         for (SenderElem elem : window) {
             if (elem.getPacket().getTcpH().getTh_seq() <= ack) {
                 elem.setAcked();
@@ -114,10 +117,11 @@ public class SenderWindow {
         if (cwnd < ssthresh) {
             logger.log(Level.INFO, "[Slow Start] cwnd " + cwnd + " -> " + (cwnd + 1));
             cwnd++;
-        } else if (ack >= nextAck) {
-            nextAck += cwnd * length;
-            logger.log(Level.INFO, "[Congestion Avoidance] cwnd " + cwnd + " -> " + (cwnd + 1));
-            cwnd++;
+            dCwnd = cwnd;
+        } else {
+            dCwnd += (double) 1 /cwnd;
+            logger.log(Level.INFO, "[Congestion Avoidance] cwnd " + cwnd + " -> " + dCwnd);
+            cwnd = (int) dCwnd;
         }
 
         if (ack == lastAck) {
@@ -132,6 +136,7 @@ public class SenderWindow {
             ssthresh = cwnd / 2;
             logger.log(Level.INFO, "[Fast Recovery] cwnd " + cwnd + " -> " + 1);
             cwnd = 1;
+            dCwnd = 1.0;
             resendPacket(ack);
         }
 

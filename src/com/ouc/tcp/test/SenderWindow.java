@@ -130,7 +130,7 @@ public class SenderWindow {
         }
 
         if (lastAckCount >= lastAckCountLimit) {
-            logger.log(Level.INFO, "[Fast Recovery (x Decrease)] ssthresh " + ssthresh + " -> " + cwnd / 2);
+            logger.log(Level.INFO, "[Congestion Avoidance (x Decrease)] ssthresh " + ssthresh + " -> " + cwnd / 2);
             ssthresh = cwnd / 2;
             logger.log(Level.INFO, "[Fast Recovery] cwnd " + cwnd + " -> " + ssthresh);
             cwnd = ssthresh;

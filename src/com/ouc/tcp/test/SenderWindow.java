@@ -6,22 +6,23 @@ import com.ouc.tcp.message.TCP_PACKET;
 import java.util.TimerTask;
 
 public class SenderWindow {
-    private int size;
-    private SenderElem[] window;
+    private final int size;
+    private final SenderElem[] window;
     private int base;
     private int nextToSend; // 下一个要发送的元素的下标
     private int rear; // 窗口的最后一个元素的下标
     private UDT_Timer timer;
-    private int delay = 1000;
-    private int period = 1000;
-    private TCP_Sender sender;
+    private final int delay = 1000;
+    private final int period = 1000;
+    private final TCP_Sender sender;
+    private int lastAck = -1;
+    private int lastAckCount = 0;
+    private final int lastAckCountLimit = 3;
 
-    public class GBN_RetransTask extends TimerTask {
-        private TCP_Sender sender;
-        private SenderWindow window;
+    public static class GBN_RetransTask extends TimerTask {
+        private final SenderWindow window;
 
-        public GBN_RetransTask(TCP_Sender sender, SenderWindow window) {
-            this.sender = sender;
+        public GBN_RetransTask(SenderWindow window) {
             this.window = window;
         }
 
@@ -33,7 +34,9 @@ public class SenderWindow {
     public void resetTimer() {
         timer.cancel();
         timer = new UDT_Timer();
-        timer.schedule(new GBN_RetransTask(sender, this), delay, period);
+        if (!isEmpty()) {
+            timer.schedule(new GBN_RetransTask(this), delay, period);
+        }
     }
 
     public SenderWindow(TCP_Sender sender, int size) {
@@ -94,11 +97,15 @@ public class SenderWindow {
 
         // 如果是第一个元素，启动定时器
         if (atBase()) {
-            timer.schedule(new GBN_RetransTask(sender, this), delay, period);
+            timer.schedule(new GBN_RetransTask(this), delay, period);
         }
 
         nextToSend++;
         sender.udt_send(pack);
+    }
+
+    private void resendPacket(int idx) {
+        sender.udt_send(window[idx].getPacket());
     }
 
     public void setPacketAcked(int ack) {
@@ -112,6 +119,17 @@ public class SenderWindow {
         }
 
         resetTimer();
+
+        if (ack == lastAck) {
+            lastAckCount++;
+        } else {
+            lastAck = ack;
+            lastAckCount = 1;
+        }
+
+        if (lastAckCount >= lastAckCountLimit) {
+            resendPacket(getIdx(base));
+        }
     }
 
 }

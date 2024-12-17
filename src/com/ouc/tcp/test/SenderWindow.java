@@ -133,8 +133,8 @@ public class SenderWindow {
             logger.log(Level.INFO, "[Fast Recovery] ssthresh " + ssthresh + " -> " + cwnd / 2);
             ssthresh = cwnd / 2;
             logger.log(Level.INFO, "[Fast Recovery] cwnd " + cwnd + " -> " + 1);
-            cwnd = 1;
-            dCwnd = 1.0;
+            cwnd = ssthresh;
+            dCwnd = (double) cwnd;
             resendPacket(ack);
         }
 

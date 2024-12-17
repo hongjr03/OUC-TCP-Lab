@@ -34,7 +34,8 @@ public class ReceiverWindow {
         return seq % size;
     }
 
-    public int bufferPacket(int seq, TCP_PACKET packet) {
+    public int bufferPacket(TCP_PACKET packet) {
+        int seq = (packet.getTcpH().getTh_seq() - 1) / packet.getTcpS().getData().length;
         if (seq >= base + size) {
             return AckFlag.DELAYED.ordinal();
         }

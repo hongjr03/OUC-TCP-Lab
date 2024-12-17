@@ -41,7 +41,11 @@ public class TCP_Sender extends TCP_Sender_ADT {
         while (flag == WindowFlag.FULL.ordinal()) {
             //等待窗口滑动
         }
-        window.pushPacket(tcpPack);
+        try {
+            window.pushPacket(tcpPack.clone());
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
         window.sendPacket(this, client, 1000, 1000);
 
     }

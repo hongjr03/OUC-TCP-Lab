@@ -24,11 +24,7 @@ public class ReceiverElem {
     }
 
     public void setPacket(TCP_PACKET packet) {
-        try {
-            this.packet = packet.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
+        this.packet = packet;
     }
 
     public TCP_PACKET getPacket() {

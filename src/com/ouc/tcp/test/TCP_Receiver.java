@@ -25,10 +25,14 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
     //接收到数据报：检查校验和，设置回复的ACK报文段
     public void rdt_recv(TCP_PACKET recvPack) {
         int dataLength = recvPack.getTcpS().getData().length;
-        int sequence = (recvPack.getTcpH().getTh_seq() - 1) / dataLength;
         //检查校验码，生成ACK
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
-            int bufferResult = window.bufferPacket(sequence, recvPack);
+            int bufferResult = 0;
+            try {
+                bufferResult = window.bufferPacket(recvPack.clone());
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
             System.out.println("bufferResult: " + bufferResult);
             if (bufferResult == AckFlag.ORDERED.ordinal()
                     || bufferResult == AckFlag.DUPLICATE.ordinal()

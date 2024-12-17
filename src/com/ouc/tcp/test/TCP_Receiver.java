@@ -6,14 +6,17 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.TimerTask;
 
 import com.ouc.tcp.client.TCP_Receiver_ADT;
+import com.ouc.tcp.client.UDT_Timer;
 import com.ouc.tcp.message.*;
 
 public class TCP_Receiver extends TCP_Receiver_ADT {
 
     private TCP_PACKET ackPack;    //回复的ACK报文段
     private ReceiverWindow window = new ReceiverWindow(16);
+    private UDT_Timer timer = new UDT_Timer();
 
     /*构造函数*/
     public TCP_Receiver() {
@@ -24,6 +27,15 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
     @Override
     //接收到数据报：检查校验和，设置回复的ACK报文段
     public void rdt_recv(TCP_PACKET recvPack) {
+        // 等待 500ms，然后发回 ACK
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                reply(ackPack);
+                timer.cancel();
+                timer = new UDT_Timer();
+            }
+        }, 500);
         int dataLength = recvPack.getTcpS().getData().length;
         //检查校验码，生成ACK
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
@@ -33,20 +45,14 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
             } catch (CloneNotSupportedException e) {
                 throw new RuntimeException(e);
             }
-            System.out.println("bufferResult: " + bufferResult);
-            if (bufferResult == AckFlag.ORDERED.ordinal()
-                    || bufferResult == AckFlag.DUPLICATE.ordinal()
-                    || bufferResult == AckFlag.IS_BASE.ordinal()) {
-                tcpH.setTh_ack(recvPack.getTcpH().getTh_seq());
-                ackPack = new TCP_PACKET(tcpH, tcpS, recvPack.getSourceAddr());
-                tcpH.setTh_sum(CheckSum.computeChkSum(ackPack));
-                reply(ackPack);
-            }
 
             if (bufferResult == AckFlag.IS_BASE.ordinal()) {
                 TCP_PACKET packet = window.getPacketToDeliver();
                 while (packet != null) {
                     dataQueue.add(packet.getTcpS().getData());
+                    tcpH.setTh_ack(packet.getTcpH().getTh_seq());
+                    ackPack = new TCP_PACKET(tcpH, tcpS, recvPack.getSourceAddr());
+                    tcpH.setTh_sum(CheckSum.computeChkSum(ackPack));
                     packet = window.getPacketToDeliver();
                 }
             }

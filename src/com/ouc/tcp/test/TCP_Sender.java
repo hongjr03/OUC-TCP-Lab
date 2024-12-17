@@ -14,7 +14,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
 
     private TCP_PACKET tcpPack;    //待发送的TCP数据报
     private volatile int flag = 1;
-    private final SenderWindow window = new SenderWindow(16);
+    private final SenderWindow window = new SenderWindow(this, 16);
 
     /*构造函数*/
     public TCP_Sender() {
@@ -37,17 +37,17 @@ public class TCP_Sender extends TCP_Sender_ADT {
         if (window.isFull()) {
             //窗口满，等待窗口滑动
             flag = WindowFlag.FULL.ordinal();
+            window.sendWindow(this);
         }
         while (flag == WindowFlag.FULL.ordinal()) {
             //等待窗口滑动
         }
+
         try {
             window.pushPacket(tcpPack.clone());
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
-        window.sendPacket(this, client, 1000, 1000);
-
     }
 
     @Override
@@ -67,7 +67,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
         //循环检查确认号对列中是否有新收到的ACK
         if (!ackQueue.isEmpty()) {
             int currentAck = ackQueue.poll();
-            window.setPacketAcked(currentAck);
+            window.setPacketAcked(this, currentAck);
             if (!window.isFull()) {
                 flag = WindowFlag.NOT_FULL.ordinal();
             }

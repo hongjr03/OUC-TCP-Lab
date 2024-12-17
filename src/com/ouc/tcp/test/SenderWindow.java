@@ -118,7 +118,7 @@ public class SenderWindow {
             dCwnd = cwnd;
         } else {
             dCwnd += (double) 1 /cwnd;
-            logger.log(Level.INFO, "[Congestion Avoidance] cwnd " + cwnd + " -> " + dCwnd);
+            logger.log(Level.INFO, "[Congestion Avoidance (+ Increase)] cwnd " + cwnd + " -> " + dCwnd);
             cwnd = (int) dCwnd;
         }
 
@@ -130,9 +130,9 @@ public class SenderWindow {
         }
 
         if (lastAckCount >= lastAckCountLimit) {
-            logger.log(Level.INFO, "[Fast Recovery] ssthresh " + ssthresh + " -> " + cwnd / 2);
+            logger.log(Level.INFO, "[Fast Recovery (x Decrease)] ssthresh " + ssthresh + " -> " + cwnd / 2);
             ssthresh = cwnd / 2;
-            logger.log(Level.INFO, "[Fast Recovery] cwnd " + cwnd + " -> " + 1);
+            logger.log(Level.INFO, "[Fast Recovery] cwnd " + cwnd + " -> " + ssthresh);
             cwnd = ssthresh;
             dCwnd = (double) cwnd;
             resendPacket(ack);

@@ -14,12 +14,13 @@ public class TCP_Sender extends TCP_Sender_ADT {
 
     private TCP_PACKET tcpPack;    //待发送的TCP数据报
     private volatile int flag = 1;
-    private final SenderWindow window = new SenderWindow(16);
+    private final SenderWindow window ;
 
     /*构造函数*/
     public TCP_Sender() {
         super();    //调用超类构造函数
-        super.initTCP_Sender(this);        //初始化TCP发送端
+        super.initTCP_Sender(this);  //初始化TCP发送端
+        window= new SenderWindow(this, 16);
     }
 
     @Override
@@ -37,17 +38,18 @@ public class TCP_Sender extends TCP_Sender_ADT {
         if (window.isFull()) {
             //窗口满，等待窗口滑动
             flag = WindowFlag.FULL.ordinal();
+            //发送窗口中的数据
+            window.sendWindow();
         }
         while (flag == WindowFlag.FULL.ordinal()) {
             //等待窗口滑动
         }
+
         try {
             window.pushPacket(tcpPack.clone());
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
-        window.sendPacket(this, client, 1000, 1000);
-
     }
 
     @Override

@@ -13,7 +13,7 @@ import com.ouc.tcp.message.*;
 public class TCP_Receiver extends TCP_Receiver_ADT {
 
     private TCP_PACKET ackPack;    //回复的ACK报文段
-    int sequence = 1;//用于记录当前待接收的包序号，注意包序号不完全是
+    int sequence = 0;//用于记录当前待接收的包序号，注意包序号不完全是
 
     /*构造函数*/
     public TCP_Receiver() {
@@ -35,9 +35,8 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
             //回复ACK报文段
             reply(ackPack);
 
-            //如果接收到的包序号和上一个包序号相同，重复包丢弃
-            if (dataSequence != (sequence)) {
-                //将接收到的正确有序的数据插入data队列，准备交付
+            //如果接收到的包序号是期望的序号，则存入 data 队列准备交付
+            if (dataSequence == sequence) {
                 dataQueue.add(recvPack.getTcpS().getData());
                 sequence++;
             }

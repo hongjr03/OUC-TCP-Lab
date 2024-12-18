@@ -34,21 +34,11 @@ public class SenderElem {
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
+        this.flag = SenderFlag.NOT_ACKED.ordinal();
     }
 
-    public void setFlag(int flag) {
-        this.flag = flag;
-    }
-
-    public int getFlag() {
-        return flag;
-    }
-
-    public void newTimer() {
+    public void schedule(UDT_RetransTask retransTask, int delay, int period) {
         this.timer = new UDT_Timer();
-    }
-
-    public void scheduleTimer(UDT_RetransTask retransTask, int delay, int period) {
         this.timer.schedule(retransTask, delay, period);
     }
 

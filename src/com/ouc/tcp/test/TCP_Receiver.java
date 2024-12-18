@@ -27,12 +27,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
         int dataLength = recvPack.getTcpS().getData().length;
         //检查校验码，生成ACK
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
-            int bufferResult = 0;
-            try {
-                bufferResult = window.bufferPacket(recvPack.clone());
-            } catch (CloneNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
+            int bufferResult = window.bufferPacket(recvPack);
             System.out.println("bufferResult: " + bufferResult);
             if (bufferResult == AckFlag.ORDERED.ordinal()
                     || bufferResult == AckFlag.DUPLICATE.ordinal()
@@ -44,11 +39,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
             }
 
             if (bufferResult == AckFlag.IS_BASE.ordinal()) {
-                TCP_PACKET packet = window.getPacketToDeliver();
-                while (packet != null) {
-                    dataQueue.add(packet.getTcpS().getData());
-                    packet = window.getPacketToDeliver();
-                }
+                window.deliverTo(dataQueue);
             }
 
         }

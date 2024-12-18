@@ -41,7 +41,6 @@ public class SenderWindow {
     public void pushPacket(TCP_PACKET packet) {
         int idx = getIdx(rear);
         window[idx].setPacket(packet);
-        window[idx].setFlag(SenderFlag.NOT_ACKED.ordinal());
         rear++;
     }
 
@@ -53,8 +52,7 @@ public class SenderWindow {
 
         int idx = getIdx(nextToSend);
         TCP_PACKET pack = window[idx].getPacket();
-        window[idx].newTimer();
-        window[idx].scheduleTimer(new UDT_RetransTask(client, pack), delay, period);
+        window[idx].schedule(new UDT_RetransTask(client, pack), delay, period);
         nextToSend++;
         sender.udt_send(pack);
     }
@@ -67,7 +65,7 @@ public class SenderWindow {
                 break;
             }
         }
-        while (base != rear && window[getIdx(base)].getFlag() == SenderFlag.ACKED.ordinal()) {
+        while (base != rear && window[getIdx(base)].isAcked()) {
             int idx = getIdx(base);
             window[idx].reset();
             base++;

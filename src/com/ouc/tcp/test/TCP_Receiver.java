@@ -44,15 +44,6 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
 //                sequence++;
                 }
             }
-        } else {
-            System.out.println("Recieve Computed: " + CheckSum.computeChkSum(recvPack));
-            System.out.println("Recieved Packet" + recvPack.getTcpH().getTh_sum());
-            System.out.println("Problem: Packet Number: " + recvPack.getTcpH().getTh_seq() + " + InnerSeq:  " + sequence);
-            tcpH.setTh_ack((sequence - 1) * dataLength + 1); // 无需使用 NAK
-            ackPack = new TCP_PACKET(tcpH, tcpS, recvPack.getSourceAddr());
-            tcpH.setTh_sum(CheckSum.computeChkSum(ackPack));
-            //回复ACK报文段
-            reply(ackPack);
         }
 
         System.out.println();

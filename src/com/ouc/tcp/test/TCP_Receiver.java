@@ -13,7 +13,7 @@ import com.ouc.tcp.message.*;
 public class TCP_Receiver extends TCP_Receiver_ADT {
 
     private TCP_PACKET ackPack;    //回复的ACK报文段
-    int sequence = 1;//用于记录当前待接收的包序号，注意包序号不完全是
+    int sequence;//用于记录当前待接收的包序号，注意包序号不完全是
     int lastSeq = 0;//用于记录上一个接收到的包序号
 
     /*构造函数*/
@@ -26,6 +26,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
     //接收到数据报：检查校验和，设置回复的ACK报文段
     public void rdt_recv(TCP_PACKET recvPack) {
         int dataLength = recvPack.getTcpS().getData().length;
+        sequence = (recvPack.getTcpH().getTh_seq() - 1) / dataLength;
         //检查校验码，生成ACK
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
             //生成ACK报文段（设置确认号）
@@ -44,7 +45,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
                 lastSeq = sequence;
                 //将接收到的正确有序的数据插入data队列，准备交付
                 dataQueue.add(recvPack.getTcpS().getData());
-                sequence++;
+//                sequence++;
             }
         } else {
             System.out.println("Recieve Computed: " + CheckSum.computeChkSum(recvPack));
@@ -96,7 +97,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
     //回复ACK报文段
     public void reply(TCP_PACKET replyPack) {
         //设置错误控制标志
-        tcpH.setTh_eflag((byte) 2);    //eFlag=0，信道无错误
+        tcpH.setTh_eflag((byte) 7);    //eFlag=0，信道无错误
 
         //发送数据报
         client.send(replyPack);

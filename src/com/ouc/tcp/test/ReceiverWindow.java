@@ -8,7 +8,7 @@ enum AckFlag {
     ORDERED, DUPLICATE, UNORDERED, IS_BASE
     // ORDERED: 接收到的包是按序的
     // DUPLICATE: 接收到的包是重复的
-    // UNORDERED: 接收到的包是提前送达，乱序
+    // UNORDERED: 接收到的包提前送达，乱序
     // IS_BASE: 接收到的包是基序号的包，开始交付数据
 }
 
@@ -50,23 +50,14 @@ public class ReceiverWindow {
         return AckFlag.ORDERED.ordinal();
     }
 
-    private TCP_PACKET getPacketToDeliver() {
+    public TCP_PACKET getPacketToDeliver() {
         if (!window[getIdx(base)].isBuffered()) {
             return null;
         }
 
         TCP_PACKET packet = window[getIdx(base)].getPacket();
-        window[getIdx(base)].reset();
+        window[getIdx(base)].resetElem();
         base++;
         return packet;
-
-    }
-
-    public void deliverTo(Queue<int[]> dataQueue) {
-        TCP_PACKET packet = getPacketToDeliver();
-        while (packet != null) {
-            dataQueue.add(packet.getTcpS().getData());
-            packet = getPacketToDeliver();
-        }
     }
 }

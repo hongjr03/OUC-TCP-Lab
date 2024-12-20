@@ -21,7 +21,7 @@ public class ReceiverElem {
         return flag == ReceiverFlag.BUFFERED.ordinal();
     }
 
-    public void reset() {
+    public void resetElem() {
         this.packet = null;
         this.flag = ReceiverFlag.WAIT.ordinal();
     }

@@ -40,7 +40,7 @@ public class SenderWindow {
 
     public void pushPacket(TCP_PACKET packet) {
         int idx = getIdx(rear);
-        window[idx].setPacket(packet);
+        window[idx].setElem(packet);
         rear++;
     }
 
@@ -52,22 +52,22 @@ public class SenderWindow {
 
         int idx = getIdx(nextToSend);
         TCP_PACKET pack = window[idx].getPacket();
-        window[idx].schedule(new UDT_RetransTask(client, pack), delay, period);
+        window[idx].scheduleTask(new UDT_RetransTask(client, pack), delay, period);
         nextToSend++;
         sender.udt_send(pack);
     }
 
-    public void setPacketAcked(int seq) {
+    public void ackPacket(int seq) {
         for (int i = base; i != rear; i++) {
             int idx = getIdx(i);
             if (window[idx].getPacket().getTcpH().getTh_seq() == seq && !window[idx].isAcked()) {
-                window[idx].ack();
+                window[idx].ackPacket();
                 break;
             }
         }
         while (base != rear && window[getIdx(base)].isAcked()) {
             int idx = getIdx(base);
-            window[idx].reset();
+            window[idx].resetElem();
             base++;
         }
     }

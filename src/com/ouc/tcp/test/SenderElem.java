@@ -19,7 +19,11 @@ public class SenderElem {
         this.timer = null;
     }
 
-    public void reset() {
+    public boolean isAcked() {
+        return flag == SenderFlag.ACKED.ordinal();
+    }
+
+    public void resetElem() {
         this.packet = null;
         this.flag = SenderFlag.NOT_ACKED.ordinal();
     }
@@ -28,7 +32,7 @@ public class SenderElem {
         return packet;
     }
 
-    public void setPacket(TCP_PACKET packet) {
+    public void setElem(TCP_PACKET packet) {
         try {
             this.packet = packet.clone();
         } catch (CloneNotSupportedException e) {
@@ -37,16 +41,12 @@ public class SenderElem {
         this.flag = SenderFlag.NOT_ACKED.ordinal();
     }
 
-    public void schedule(UDT_RetransTask retransTask, int delay, int period) {
+    public void scheduleTask(UDT_RetransTask retransTask, int delay, int period) {
         this.timer = new UDT_Timer();
         this.timer.schedule(retransTask, delay, period);
     }
 
-    public boolean isAcked() {
-        return flag == SenderFlag.ACKED.ordinal();
-    }
-
-    public void ack() {
+    public void ackPacket() {
         this.flag = SenderFlag.ACKED.ordinal();
         this.timer.cancel();
     }

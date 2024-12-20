@@ -41,6 +41,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
         while (flag == WindowFlag.FULL.ordinal()) {
             //等待窗口滑动
         }
+
         try {
             window.pushPacket(tcpPack.clone());
         } catch (CloneNotSupportedException e) {
@@ -67,7 +68,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
         //循环检查确认号对列中是否有新收到的ACK
         if (!ackQueue.isEmpty()) {
             int currentAck = ackQueue.poll();
-            window.setPacketAcked(currentAck);
+            window.ackPacket(currentAck);
             if (!window.isFull()) {
                 flag = WindowFlag.NOT_FULL.ordinal();
             }

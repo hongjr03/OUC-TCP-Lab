@@ -39,7 +39,11 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
             }
 
             if (bufferResult == AckFlag.IS_BASE.ordinal()) {
-                window.deliverTo(dataQueue);
+                TCP_PACKET packet = window.getPacketToDeliver();
+                while (packet != null) {
+                    dataQueue.add(packet.getTcpS().getData());
+                    packet = window.getPacketToDeliver();
+                }
             }
 
         }

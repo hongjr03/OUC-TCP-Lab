@@ -40,7 +40,7 @@ public class SenderWindow {
 
     public void pushPacket(TCP_PACKET packet) {
         int idx = getIdx(rear);
-        window[idx].setElem(packet);
+        window[idx].setElem(packet, SenderFlag.NOT_ACKED.ordinal());
         rear++;
     }
 

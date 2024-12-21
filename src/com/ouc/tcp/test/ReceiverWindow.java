@@ -2,8 +2,6 @@ package com.ouc.tcp.test;
 
 import com.ouc.tcp.message.TCP_PACKET;
 
-import java.util.Queue;
-
 enum AckFlag {
     ORDERED, DUPLICATE, UNORDERED, IS_BASE
     // ORDERED: 接收到的包是按序的
@@ -27,10 +25,6 @@ public class ReceiverWindow {
         this.base = 0;
     }
 
-    public int getBase() {
-        return base;
-    }
-
     private int getIdx(int seq) {
         return seq % size;
     }
@@ -43,7 +37,7 @@ public class ReceiverWindow {
         if (seq < base) {
             return AckFlag.DUPLICATE.ordinal();
         }
-        window[getIdx(seq)].recvPacket(packet);
+        window[getIdx(seq)].setElem(packet, ReceiverFlag.BUFFERED.ordinal());
         if (seq == base) {
             return AckFlag.IS_BASE.ordinal();
         }

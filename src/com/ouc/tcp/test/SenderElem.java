@@ -8,38 +8,17 @@ enum SenderFlag {
     NOT_ACKED, ACKED
 }
 
-public class SenderElem {
-    private TCP_PACKET packet;
-    private int flag;
+public class SenderElem extends WindowElem{
+    private UDT_Timer timer;
 
     public SenderElem() {
-        this.packet = null;
-        this.flag = SenderFlag.NOT_ACKED.ordinal();
+        super();
+        this.timer = null;
     }
 
     public SenderElem(TCP_PACKET packet, int flag) {
+        super();
         this.packet = packet;
-        this.flag = flag;
-    }
-
-    public void reset() {
-        this.packet = null;
-        this.flag = SenderFlag.NOT_ACKED.ordinal();
-    }
-
-    public TCP_PACKET getPacket() {
-        return packet;
-    }
-
-    public void setPacket(TCP_PACKET packet) {
-        try {
-            this.packet = packet.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void setFlag(int flag) {
         this.flag = flag;
     }
 
@@ -47,7 +26,13 @@ public class SenderElem {
         return flag == SenderFlag.ACKED.ordinal();
     }
 
-    public void setAcked() {
-        flag = SenderFlag.ACKED.ordinal();
+    public void scheduleTask(UDT_RetransTask retransTask, int delay, int period) {
+        this.timer = new UDT_Timer();
+        this.timer.schedule(retransTask, delay, period);
+    }
+
+    public void ackPacket() {
+        this.flag = SenderFlag.ACKED.ordinal();
+        this.timer.cancel();
     }
 }

@@ -43,8 +43,7 @@ public class ReceiverWindow {
             return AckFlag.DUPLICATE.ordinal();
         }
         int idx = getIdx(seq);
-        window[idx].setPacket(packet);
-        window[idx].setFlag(ReceiverFlag.BUFFERED.ordinal());
+        window[idx].setElem(packet, ReceiverFlag.BUFFERED.ordinal());
         if (seq == base) {
             return AckFlag.IS_BASE.ordinal();
         }
@@ -52,11 +51,11 @@ public class ReceiverWindow {
     }
 
     public TCP_PACKET getPacketToDeliver() {
-        if (window[getIdx(base)].getFlag() == ReceiverFlag.BUFFERED.ordinal()) {
+        if (window[getIdx(base)].isBuffered()) {
             int idx = getIdx(base);
             TCP_PACKET packet = window[idx].getPacket();
             base++;
-            window[idx].reset();
+            window[idx].resetElem();
             return packet;
         }
         return null;

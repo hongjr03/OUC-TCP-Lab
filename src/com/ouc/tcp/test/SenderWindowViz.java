@@ -119,7 +119,7 @@ public class SenderWindowViz {
     public void ackPacket(int ack) {
         for (SenderElem elem : window) {
             if (elem.getPacket().getTcpH().getTh_seq() <= ack) {
-                elem.setAcked();
+                elem.ackPacket();
                 window.remove(elem);
                 if (cwnd < ssthresh) {
                     cwnd++;

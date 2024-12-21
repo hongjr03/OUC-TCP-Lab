@@ -12,8 +12,8 @@ public class SenderWindow {
     private int nextToSend; // 下一个要发送的元素的下标
     private int rear; // 窗口的最后一个元素的下标
     private UDT_Timer timer;
-    private final int delay = 1000;
-    private final int period = 1000;
+    private final int delay;
+    private final int period;
     private final TCP_Sender sender;
     private int lastAck = -1;
     private int lastAckCount = 0;
@@ -39,7 +39,7 @@ public class SenderWindow {
         }
     }
 
-    public SenderWindow(TCP_Sender sender, int size) {
+    public SenderWindow(TCP_Sender sender, int size, int delay, int period) {
         this.sender = sender;
         this.size = size;
         this.window = new SenderElem[size];
@@ -50,6 +50,8 @@ public class SenderWindow {
         this.nextToSend = 0;
         this.rear = 0;
         this.timer = new UDT_Timer();
+        this.delay = delay;
+        this.period = period;
     }
 
     private int getIdx(int seq) {
@@ -60,22 +62,21 @@ public class SenderWindow {
         return rear - base == size;
     }
 
-    public boolean isEmpty() {
+    private boolean isEmpty() {
         return base == rear;
     }
 
-    public boolean isAllSent() {
+    private boolean isAllSent() {
         return nextToSend == rear;
     }
 
-    public boolean atBase() {
+    private boolean atBase() {
         return nextToSend == base;
     }
 
     public void pushPacket(TCP_PACKET packet) {
         int idx = getIdx(rear);
-        window[idx].setPacket(packet);
-        window[idx].setFlag(SenderFlag.NOT_ACKED.ordinal());
+        window[idx].setElem(packet, SenderFlag.NOT_ACKED.ordinal());
         rear++;
     }
 
@@ -86,7 +87,7 @@ public class SenderWindow {
         }
     }
 
-    public void sendPacket() {
+    private void sendPacket() {
         if (isEmpty() || isAllSent()) {
             // 窗口为空或者窗口中的所有元素都已经发送
             return;
@@ -108,12 +109,12 @@ public class SenderWindow {
         sender.udt_send(window[idx].getPacket());
     }
 
-    public void setPacketAcked(int ack) {
+    public void ackPacket(int ack) {
         int idx = getIdx(base);
         while (
                 window[idx].getPacket().getTcpH().getTh_seq() <= ack && !window[idx].isAcked() && base < rear
         ) {
-            window[idx].setAcked();
+            window[idx].ackPacket();
             base++;
             idx = getIdx(base);
         }

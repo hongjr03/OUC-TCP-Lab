@@ -28,16 +28,9 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
     //接收到数据报：检查校验和，设置回复的ACK报文段
     public void rdt_recv(TCP_PACKET recvPack) {
 
-        int dataLength = recvPack.getTcpS().getData().length;
         //检查校验码，生成ACK
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
-            int bufferResult;
-            try {
-                bufferResult = window.bufferPacket(recvPack.clone());
-            } catch (CloneNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-
+            int bufferResult = window.bufferPacket(recvPack);
             if (bufferResult == AckFlag.IS_BASE.ordinal()) {
                 TCP_PACKET packet = window.getPacketToDeliver();
                 while (packet != null) {
@@ -53,9 +46,8 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
         reply(ackPack);    //回复ACK报文段
         // 错误包不回复 ACK
 
-//        System.out.println();
-        System.out.println("Expected: " + (window.getBase() * dataLength + 1));
-//        window.printWindowHumanReadable();
+        System.out.println();
+
         //交付数据
         deliver_data();
     }
@@ -75,8 +67,8 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
                 int[] data = dataQueue.poll();
 
                 //将数据写入文件
-                for (int datum : data) {
-                    writer.write(datum + "\n");
+                for (int i = 0; i < data.length; i++) {
+                    writer.write(data[i] + "\n");
                 }
 
                 writer.flush();        //清空输出缓存

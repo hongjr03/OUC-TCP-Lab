@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingDeque;
 
+// 能导出可视化所需要的数据
 public class SenderWindowViz {
     private final LinkedBlockingDeque<SenderElem> window;
 

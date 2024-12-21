@@ -13,9 +13,9 @@
 - [TCP Tahoe](https://github.com/hongjr03/OUC-TCP-Lab/tree/TCP-Tahoe)
 - [TCP Reno](https://github.com/hongjr03/OUC-TCP-Lab/tree/TCP-Reno)
 
-## 实验报告
+## Tahoe 和 Reno 的说明
 
-还在写。
+SenderWindow 和 SenderWindowViz 的实现是一样的，只是 SenderWindowViz 记录了不同时刻的窗口大小，用于绘制窗口大小的变化图。
 
 ## Star History
 
@@ -26,4 +26,3 @@
    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=hongjr03/OUC-TCP-Lab&type=Date" />
  </picture>
 </a>
-

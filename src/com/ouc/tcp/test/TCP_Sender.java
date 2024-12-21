@@ -39,7 +39,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
             //窗口满，等待窗口滑动
             flag = WindowFlag.FULL.ordinal();
             //发送窗口中的数据
-            window.sendWindow();
+//            window.sendWindow();
         }
         while (flag == WindowFlag.FULL.ordinal()) {
             //等待窗口滑动
@@ -50,6 +50,8 @@ public class TCP_Sender extends TCP_Sender_ADT {
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
+
+        window.sendPacket();
     }
 
     @Override

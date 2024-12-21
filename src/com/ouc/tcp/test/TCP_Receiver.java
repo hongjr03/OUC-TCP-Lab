@@ -35,7 +35,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
                 timer.cancel();
                 timer = new UDT_Timer();
             }
-        }, 500);
+        }, 200);
 
         //检查校验码，生成ACK
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {

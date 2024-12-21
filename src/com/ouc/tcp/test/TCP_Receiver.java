@@ -36,16 +36,10 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
                 timer = new UDT_Timer();
             }
         }, 500);
-        int dataLength = recvPack.getTcpS().getData().length;
+
         //检查校验码，生成ACK
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
-            int bufferResult = 0;
-            try {
-                bufferResult = window.bufferPacket(recvPack.clone());
-            } catch (CloneNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-
+            int bufferResult = window.bufferPacket(recvPack);
             if (bufferResult == AckFlag.IS_BASE.ordinal()) {
                 TCP_PACKET packet = window.getPacketToDeliver();
                 while (packet != null) {
@@ -61,8 +55,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
         // 错误包不回复 ACK
 
         System.out.println();
-//        System.out.println("Expected: " + (window.getBase() * dataLength + 1));
-//        window.printWindowHumanReadable();
+
         //交付数据
         deliver_data();
     }

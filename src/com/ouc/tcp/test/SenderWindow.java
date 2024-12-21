@@ -59,15 +59,15 @@ public class SenderWindow {
         return rear - base == size;
     }
 
-    public boolean isEmpty() {
+    private boolean isEmpty() {
         return base == rear;
     }
 
-    public boolean isAllSent() {
+    private boolean isAllSent() {
         return nextToSend == rear;
     }
 
-    public boolean atBase() {
+    private boolean atBase() {
         return nextToSend == base;
     }
 
@@ -84,7 +84,7 @@ public class SenderWindow {
         }
     }
 
-    public void sendPacket() {
+    private void sendPacket() {
         if (isEmpty() || isAllSent()) {
             // 窗口为空或者窗口中的所有元素都已经发送
             return;
@@ -102,10 +102,10 @@ public class SenderWindow {
         sender.udt_send(pack);
     }
 
-    public void setPacketAcked(int ack) {
+    public void ackPacket(int seq) {
         int idx = getIdx(base);
         while (
-                window[idx].getPacket().getTcpH().getTh_seq() <= ack && !window[idx].isAcked() && base < rear
+                window[idx].getPacket().getTcpH().getTh_seq() <= seq && !window[idx].isAcked() && base < rear
         ) {
             window[idx].ackPacket();
             base++;

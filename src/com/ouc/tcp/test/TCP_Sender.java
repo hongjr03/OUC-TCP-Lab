@@ -14,13 +14,13 @@ public class TCP_Sender extends TCP_Sender_ADT {
 
     private TCP_PACKET tcpPack;    //待发送的TCP数据报
     private volatile int flag = 1;
-    private final SenderWindow window ;
+    private final SenderWindow window;
 
     /*构造函数*/
     public TCP_Sender() {
         super();    //调用超类构造函数
         super.initTCP_Sender(this);  //初始化TCP发送端
-        window= new SenderWindow(this, 16, 1000, 1000);
+        window = new SenderWindow(this, 16, 1000, 1000);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
         //循环检查确认号对列中是否有新收到的ACK
         if (!ackQueue.isEmpty()) {
             int currentAck = ackQueue.poll();
-            window.setPacketAcked(currentAck);
+            window.ackPacket(currentAck);
             if (!window.isFull()) {
                 flag = WindowFlag.NOT_FULL.ordinal();
             }

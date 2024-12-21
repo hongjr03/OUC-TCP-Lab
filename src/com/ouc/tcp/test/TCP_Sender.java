@@ -14,13 +14,13 @@ public class TCP_Sender extends TCP_Sender_ADT {
 
     private TCP_PACKET tcpPack;    //待发送的TCP数据报
     private volatile int flag = WindowFlag.NOT_FULL.ordinal();    //窗口满标志
-    private final SenderWindow window;
+    private final SenderWindowViz window;
 
     /*构造函数*/
     public TCP_Sender() {
         super();    //调用超类构造函数
         super.initTCP_Sender(this);  //初始化TCP发送端
-        window = new SenderWindow(this);
+        window = new SenderWindowViz(this);
     }
 
     @Override
@@ -34,21 +34,20 @@ public class TCP_Sender extends TCP_Sender_ADT {
         tcpH.setTh_sum(CheckSum.computeChkSum(tcpPack));
         tcpPack.setTcpH(tcpH);
 
+        if (window.isCwndFull()) {
+            //窗口满，等待窗口滑动
+            flag = WindowFlag.FULL.ordinal();
+        }
+        while (flag == WindowFlag.FULL.ordinal()) {
+            //等待窗口滑动
+        }
         try {
             window.pushPacket(tcpPack.clone());
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
-
-        if (window.isCwndFull()) {
-            //窗口满，等待窗口滑动
-            flag = WindowFlag.FULL.ordinal();
-            //发送窗口中的数据
-            window.sendWindow();
-        }
-        while (flag == WindowFlag.FULL.ordinal()) {
-            //等待窗口滑动
-        }
+        //发送窗口中的数据
+        window.sendPacket();
     }
 
     @Override
@@ -77,7 +76,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
         //处理ACK报文
         if (!ackQueue.isEmpty()) {
             int currentAck = ackQueue.poll();
-            window.setPacketAcked(currentAck);
+            window.ackPacket(currentAck);
         }
         if (!window.isCwndFull()) {
             flag = WindowFlag.NOT_FULL.ordinal();

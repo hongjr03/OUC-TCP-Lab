@@ -3,10 +3,13 @@ package com.ouc.tcp.test;
 import com.ouc.tcp.client.UDT_Timer;
 import com.ouc.tcp.message.TCP_PACKET;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingDeque;
 
-public class SenderWindow {
+public class SenderWindowViz {
     private final LinkedBlockingDeque<SenderElem> window;
 
     private int cwnd = 1;
@@ -22,10 +25,15 @@ public class SenderWindow {
     private int lastAckCount = 0;
     private final int lastAckCountLimit = 3;
 
-    public class GBN_RetransTask extends TimerTask {
-        private final SenderWindow window;
+    // Added fields for visualization
+    private List<Integer> cwndHistory = new ArrayList<>();
+    private List<Long> timeHistory = new ArrayList<>();
+    private long startTime;
 
-        public GBN_RetransTask(SenderWindow window) {
+    public class GBN_RetransTask extends TimerTask {
+        private final SenderWindowViz window;
+
+        public GBN_RetransTask(SenderWindowViz window) {
             this.window = window;
         }
 
@@ -34,18 +42,24 @@ public class SenderWindow {
         }
     }
 
-    public void resetTimer() {
-        timer.cancel();
-        timer = new UDT_Timer();
-        if (!isEmpty()) {
-            timer.schedule(new GBN_RetransTask(this), delay, period);
-        }
-    }
+    private static final String CSV_FILE_PATH = "tcp_data.csv";
+    private final BufferedWriter csvWriter;
 
-    public SenderWindow(TCP_Sender sender) {
+    public SenderWindowViz(TCP_Sender sender) {
         this.sender = sender;
         this.window = new LinkedBlockingDeque<>();
         this.timer = new UDT_Timer();
+        this.startTime = System.currentTimeMillis();
+
+        // Initialize CSV writer
+        try {
+            // Create new file and write header
+            this.csvWriter = new BufferedWriter(new FileWriter(CSV_FILE_PATH, false));
+            csvWriter.write("Time(ms),Cwnd,Ssthresh\n");
+            csvWriter.flush();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to create CSV file: " + e.getMessage());
+        }
     }
 
     public boolean isCwndFull() {
@@ -57,7 +71,7 @@ public class SenderWindow {
     }
 
     public void pushPacket(TCP_PACKET packet) {
-        // 如果窗口为空，启动定时器
+        recordCwnd(); // Record initial cwnd
         if (isEmpty()) {
             timer = new UDT_Timer();
             timer.schedule(new GBN_RetransTask(this), delay, period);
@@ -66,7 +80,6 @@ public class SenderWindow {
     }
 
     public void sendWindow() {
-        // 发送窗口中的数据
         for (SenderElem elem : window) {
             if (!elem.isAcked()) {
                 sender.udt_send(elem.getPacket());
@@ -83,6 +96,14 @@ public class SenderWindow {
             sender.udt_send(elem.getPacket());
         }
         window.push(elem);
+    }
+
+    public void resetTimer() {
+        timer.cancel();
+        timer = new UDT_Timer();
+        if (!window.isEmpty()) {
+            timer.schedule(new GBN_RetransTask(this), delay, period);
+        }
     }
 
     private void resendPacket(int ack) {
@@ -103,18 +124,21 @@ public class SenderWindow {
                 if (cwnd < ssthresh) {
                     cwnd++;
                     dCwnd = cwnd;
+                    recordCwnd();
                 }
                 resetTimer();
             }
         }
 
-
-        // 更新拥塞窗口
+        // Update congestion window
         if (cwnd >= ssthresh) {
+            double oldDCwnd = dCwnd;
             dCwnd += (double) 1 / cwnd;
-            cwnd = (int) dCwnd;
+            if ((int)dCwnd > (int)oldDCwnd) {
+                cwnd = (int) dCwnd;
+            }
         }
-
+        recordCwnd();
         if (ack == lastAck) {
             lastAckCount++;
         } else {
@@ -126,9 +150,49 @@ public class SenderWindow {
             ssthresh = cwnd / 2;
             cwnd = ssthresh + 3;
             dCwnd = (double) cwnd;
+
             resendPacket(ack);
         }
+        recordCwnd(); // Record cwnd change
+    }
 
+    // Modified method to record cwnd
+    private void recordCwnd() {
+        long currentTime = System.currentTimeMillis() - startTime;
+
+        // Write to CSV file
+        try {
+            csvWriter.write(String.format("%d,%d,%d\n", currentTime, cwnd, ssthresh));
+            csvWriter.flush(); // Ensure data is written immediately
+        } catch (IOException e) {
+            System.err.println("Failed to write to CSV file: " + e.getMessage());
+        }
+    }
+
+    // Add cleanup method
+    public void cleanup() {
+        try {
+            if (csvWriter != null) {
+                csvWriter.close();
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to close CSV file: " + e.getMessage());
+        }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        cleanup();
+        super.finalize();
+    }
+
+
+    // New methods to retrieve visualization data
+    public List<Integer> getCwndHistory() {
+        return new ArrayList<>(cwndHistory);
+    }
+
+    public List<Long> getTimeHistory() {
+        return new ArrayList<>(timeHistory);
     }
 }
-

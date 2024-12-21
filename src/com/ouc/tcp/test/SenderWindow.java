@@ -87,7 +87,7 @@ public class SenderWindow {
         }
     }
 
-    private void sendPacket() {
+    public void sendPacket() {
         if (isEmpty() || isAllSent()) {
             // 窗口为空或者窗口中的所有元素都已经发送
             return;
@@ -110,16 +110,17 @@ public class SenderWindow {
     }
 
     public void ackPacket(int ack) {
-        int idx = getIdx(base);
-        while (
-                window[idx].getPacket().getTcpH().getTh_seq() <= ack && !window[idx].isAcked() && base < rear
-        ) {
-            window[idx].ackPacket();
-            base++;
-            idx = getIdx(base);
+        // 从 base 开始遍历，找到对应的包并 ACK
+        for (int i = base; i != rear; i++) {
+            int idx = getIdx(i);
+            if (window[idx].getPacket().getTcpH().getTh_seq() <= ack && !window[idx].isAcked()) {
+                window[idx].ackPacket();
+                window[idx].resetElem();
+                base++;
+                resetTimer();
+            }
         }
 
-        resetTimer();
 
         if (ack == lastAck) {
             lastAckCount++;

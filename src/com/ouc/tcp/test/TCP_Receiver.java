@@ -30,7 +30,12 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
 
         //检查校验码，生成ACK
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
-            int bufferResult = window.bufferPacket(recvPack);
+            int bufferResult = 0;
+            try {
+                bufferResult = window.bufferPacket(recvPack.clone());
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
             if (bufferResult == AckFlag.IS_BASE.ordinal()) {
                 TCP_PACKET packet = window.getPacketToDeliver();
                 while (packet != null) {

@@ -91,16 +91,29 @@ public class SenderWindow {
         }
     }
 
+    public void sendPacket() {
+        logger.log(Level.INFO, "[cwnd] " + cwnd + ", [ssthresh] " + ssthresh);
+        SenderElem elem = window.poll();
+        if (elem == null) {
+            return;
+        }
+        if (!elem.isAcked()) {
+            sender.udt_send(elem.getPacket());
+        }
+        window.push(elem);
+    }
+
     private void resendPacket(int ack) {
+        int expectedAck = ack + 100;
         for (SenderElem elem : window) {
-            if (elem.getPacket().getTcpH().getTh_seq() > ack) {
+            if (elem.getPacket().getTcpH().getTh_seq() == expectedAck) {
                 sender.udt_send(elem.getPacket());
                 break;
             }
         }
     }
 
-    public void setPacketAcked(int ack) {
+    public void ackPacket(int ack) {
         for (SenderElem elem : window) {
             if (elem.getPacket().getTcpH().getTh_seq() <= ack) {
                 elem.setAcked();

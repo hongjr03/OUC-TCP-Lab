@@ -48,7 +48,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
             //等待窗口滑动
         }
         //发送窗口中的数据
-        window.sendWindow();
+        window.sendPacket();
     }
 
     @Override
@@ -77,7 +77,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
         //处理ACK报文
         if (!ackQueue.isEmpty()) {
             int currentAck = ackQueue.poll();
-            window.setPacketAcked(currentAck);
+            window.ackPacket(currentAck);
         }
         if (!window.isCwndFull()) {
             flag = WindowFlag.NOT_FULL.ordinal();

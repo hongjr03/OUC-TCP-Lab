@@ -87,7 +87,7 @@ public class SenderWindow {
         }
     }
 
-    public void sendPacket() {
+    private void sendPacket() {
         if (isEmpty() || isAllSent()) {
             // 窗口为空或者窗口中的所有元素都已经发送
             return;

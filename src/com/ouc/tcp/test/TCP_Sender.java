@@ -50,7 +50,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
-        window.sendPacket();
+        window.sendWindow();
     }
 
     @Override

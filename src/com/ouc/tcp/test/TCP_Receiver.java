@@ -60,8 +60,8 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
         }
         // 错误包不回复 ACK
 
-//        System.out.println();
-        System.out.println("Expected: " + (window.getBase() * dataLength + 1));
+        System.out.println();
+//        System.out.println("Expected: " + (window.getBase() * dataLength + 1));
 //        window.printWindowHumanReadable();
         //交付数据
         deliver_data();

@@ -20,7 +20,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
     public TCP_Sender() {
         super();    //调用超类构造函数
         super.initTCP_Sender(this);  //初始化TCP发送端
-        window= new SenderWindow(this, 16);
+        window= new SenderWindow(this, 16, 1000, 1000);
     }
 
     @Override

@@ -1,13 +1,12 @@
 package com.ouc.tcp.test;
 
-import com.ouc.tcp.client.Client;
 import com.ouc.tcp.message.TCP_PACKET;
 
 enum AckFlag {
-    ORDERED, DUPLICATE, DELAYED, IS_BASE
+    ORDERED, DUPLICATE, UNORDERED, IS_BASE
     // ORDERED: 接收到的包是按序的
     // DUPLICATE: 接收到的包是重复的
-    // DELAYED: 接收到的包是延迟的，即接收到的包的序号比期望的序号大
+    // UNORDERED: 接收到的包提前送达，乱序
     // IS_BASE: 接收到的包是基序号的包，开始交付数据
 }
 
@@ -26,10 +25,6 @@ public class ReceiverWindow {
         this.base = 0;
     }
 
-    public int getBase() {
-        return base;
-    }
-
     private int getIdx(int seq) {
         return seq % size;
     }
@@ -37,14 +32,12 @@ public class ReceiverWindow {
     public int bufferPacket(TCP_PACKET packet) {
         int seq = (packet.getTcpH().getTh_seq() - 1) / packet.getTcpS().getData().length;
         if (seq >= base + size) {
-            return AckFlag.DELAYED.ordinal();
+            return AckFlag.UNORDERED.ordinal();
         }
         if (seq < base) {
             return AckFlag.DUPLICATE.ordinal();
         }
-        int idx = getIdx(seq);
-        window[idx].setPacket(packet);
-        window[idx].setFlag(ReceiverFlag.BUFFERED.ordinal());
+        window[getIdx(seq)].setElem(packet, ReceiverFlag.BUFFERED.ordinal());
         if (seq == base) {
             return AckFlag.IS_BASE.ordinal();
         }
@@ -52,14 +45,13 @@ public class ReceiverWindow {
     }
 
     public TCP_PACKET getPacketToDeliver() {
-        if (window[getIdx(base)].getFlag() == ReceiverFlag.BUFFERED.ordinal()) {
-            int idx = getIdx(base);
-            TCP_PACKET packet = window[idx].getPacket();
-            base++;
-            window[idx].reset();
-            return packet;
+        if (!window[getIdx(base)].isBuffered()) {
+            return null;
         }
-        return null;
-    }
 
+        TCP_PACKET packet = window[getIdx(base)].getPacket();
+        window[getIdx(base)].resetElem();
+        base++;
+        return packet;
+    }
 }

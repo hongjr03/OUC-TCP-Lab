@@ -29,7 +29,7 @@ public class SenderWindow {
     static {
         try {
             // Create a FileHandler that writes log to a file called "sender.log"
-            FileHandler fileHandler = new FileHandler("sender.log", true);
+            FileHandler fileHandler = new FileHandler("sender.log", false);
             fileHandler.setFormatter(new SimpleFormatter());
             logger.addHandler(fileHandler);
             logger.setLevel(Level.ALL);

@@ -9,11 +9,9 @@ enum SenderFlag {
 }
 
 public class SenderElem extends WindowElem{
-    private UDT_Timer timer;
 
     public SenderElem() {
         super();
-        this.timer = null;
     }
 
     public SenderElem(TCP_PACKET packet, int flag) {
@@ -26,13 +24,7 @@ public class SenderElem extends WindowElem{
         return flag == SenderFlag.ACKED.ordinal();
     }
 
-    public void scheduleTask(UDT_RetransTask retransTask, int delay, int period) {
-        this.timer = new UDT_Timer();
-        this.timer.schedule(retransTask, delay, period);
-    }
-
     public void ackPacket() {
         this.flag = SenderFlag.ACKED.ordinal();
-        this.timer.cancel();
     }
 }

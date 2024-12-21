@@ -43,12 +43,12 @@ public class TCP_Sender extends TCP_Sender_ADT {
         if (window.isCwndFull()) {
             //窗口满，等待窗口滑动
             flag = WindowFlag.FULL.ordinal();
-            //发送窗口中的数据
-            window.sendWindow();
         }
         while (flag == WindowFlag.FULL.ordinal()) {
             //等待窗口滑动
         }
+        //发送窗口中的数据
+        window.sendWindow();
     }
 
     @Override

@@ -1,13 +1,12 @@
 package com.ouc.tcp.test;
 
-import com.ouc.tcp.client.Client;
 import com.ouc.tcp.message.TCP_PACKET;
 
 enum AckFlag {
-    ORDERED, DUPLICATE, DELAYED, IS_BASE
+    ORDERED, DUPLICATE, UNORDERED, IS_BASE
     // ORDERED: 接收到的包是按序的
     // DUPLICATE: 接收到的包是重复的
-    // DELAYED: 接收到的包是延迟的，即接收到的包的序号比期望的序号大
+    // UNORDERED: 接收到的包是乱序的
     // IS_BASE: 接收到的包是基序号的包，开始交付数据
 }
 
@@ -37,7 +36,7 @@ public class ReceiverWindow {
     public int bufferPacket(TCP_PACKET packet) {
         int seq = (packet.getTcpH().getTh_seq() - 1) / packet.getTcpS().getData().length;
         if (seq >= base + size) {
-            return AckFlag.DELAYED.ordinal();
+            return AckFlag.UNORDERED.ordinal();
         }
         if (seq < base) {
             return AckFlag.DUPLICATE.ordinal();

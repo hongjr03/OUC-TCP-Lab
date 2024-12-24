@@ -27,15 +27,15 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
     @Override
     //接收到数据报：检查校验和，设置回复的ACK报文段
     public void rdt_recv(TCP_PACKET recvPack) {
-        // 等待 500ms，然后发回 ACK
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                reply(ackPack);
-                timer.cancel();
-                timer = new UDT_Timer();
-            }
-        }, 200);
+//        // 等待 500ms，然后发回 ACK
+//        timer.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                reply(ackPack);
+//                timer.cancel();
+//                timer = new UDT_Timer();
+//            }
+//        }, 500);
 
         //检查校验码，生成ACK
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
@@ -49,6 +49,19 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
                     tcpH.setTh_sum(CheckSum.computeChkSum(ackPack));
                     packet = window.getPacketToDeliver();
                 }
+                if (timer != null) {
+                    timer.cancel();
+                    timer = new UDT_Timer();
+                    timer.schedule(
+                            new TimerTask() {
+                                public void run() {
+                                    reply(ackPack);    //回复ACK报文段
+                                }
+                            }, 500
+                    );
+                }
+            } else {
+                reply(ackPack);
             }
 
         }

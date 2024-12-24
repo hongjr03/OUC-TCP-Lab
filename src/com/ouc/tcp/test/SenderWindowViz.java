@@ -133,11 +133,8 @@ public class SenderWindowViz {
 
         // Update congestion window
         if (cwnd >= ssthresh) {
-            double oldDCwnd = dCwnd;
             dCwnd += (double) 1 / cwnd;
-            if ((int)dCwnd > (int)oldDCwnd) {
-                cwnd = (int) dCwnd;
-            }
+            cwnd = (int) dCwnd;
         }
         recordCwnd();
         if (ack == lastAck) {
@@ -151,7 +148,7 @@ public class SenderWindowViz {
             ssthresh = cwnd / 2;
             cwnd = ssthresh + 3;
             dCwnd = (double) cwnd;
-
+            recordCwnd();
             resendPacket(ack);
         }
         recordCwnd(); // Record cwnd change

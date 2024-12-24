@@ -58,7 +58,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
                             }, 500
                     );
                 }
-            } else {
+            } else if (bufferResult != AckFlag.ORDERED.ordinal()) {
                 reply(ackPack);
             }
         }

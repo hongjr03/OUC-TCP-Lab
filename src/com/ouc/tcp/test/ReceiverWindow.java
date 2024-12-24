@@ -38,14 +38,14 @@ public class ReceiverWindow {
         if (seq >= base + size) {
             return AckFlag.UNORDERED.ordinal();
         }
+        int idx = getIdx(seq);
         if (seq < base) {
             return AckFlag.DUPLICATE.ordinal();
         }
-        int idx = getIdx(seq);
         window[idx].setElem(packet, ReceiverFlag.BUFFERED.ordinal());
-        if (seq == base) {
-            return AckFlag.IS_BASE.ordinal();
-        }
+//        if (seq == base) {
+//            return AckFlag.IS_BASE.ordinal();
+//        }
         return AckFlag.ORDERED.ordinal();
     }
 

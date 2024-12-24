@@ -39,7 +39,7 @@ public class SenderWindowViz {
         }
 
         public void run() {
-            window.sendWindow();
+            window.resendWindow();
         }
     }
 
@@ -80,7 +80,7 @@ public class SenderWindowViz {
         window.push(new SenderElem(packet, SenderFlag.NOT_ACKED.ordinal()));
     }
 
-    public void sendWindow() {
+    public void resendWindow() {
         for (SenderElem elem : window) {
             if (!elem.isAcked()) {
                 sender.udt_send(elem.getPacket());
@@ -150,6 +150,7 @@ public class SenderWindowViz {
             dCwnd = (double) cwnd;
             recordCwnd();
             resendPacket(ack);
+            lastAckCount = 0;
         }
         recordCwnd(); // Record cwnd change
     }

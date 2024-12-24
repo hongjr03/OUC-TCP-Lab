@@ -33,7 +33,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
             int bufferResult = window.bufferPacket(recvPack);
 
-            if (bufferResult == AckFlag.ORDERED.ordinal()) {
+            if (bufferResult == AckFlag.ORDERED.ordinal() || bufferResult == AckFlag.DUPLICATE.ordinal()) {
                 TCP_PACKET packet = window.getPacketToDeliver();
                 while (packet != null) {
                     dataQueue.add(packet.getTcpS().getData());

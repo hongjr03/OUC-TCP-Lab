@@ -146,7 +146,7 @@ public class SenderWindowViz {
 
         if (lastAckCount >= lastAckCountLimit) {
             ssthresh = cwnd / 2;
-            cwnd = ssthresh + 3;
+            cwnd = 1;
             dCwnd = (double) cwnd;
             recordCwnd();
             resendPacket(ack);

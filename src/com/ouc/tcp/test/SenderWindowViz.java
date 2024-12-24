@@ -39,7 +39,7 @@ public class SenderWindowViz {
         }
 
         public void run() {
-            window.sendWindow();
+            window.resendWindow();
         }
     }
 
@@ -80,7 +80,7 @@ public class SenderWindowViz {
         window.push(new SenderElem(packet, SenderFlag.NOT_ACKED.ordinal()));
     }
 
-    public void sendWindow() {
+    public void resendWindow() {
         for (SenderElem elem : window) {
             if (!elem.isAcked()) {
                 sender.udt_send(elem.getPacket());
@@ -133,11 +133,8 @@ public class SenderWindowViz {
 
         // Update congestion window
         if (cwnd >= ssthresh) {
-            double oldDCwnd = dCwnd;
             dCwnd += (double) 1 / cwnd;
-            if ((int)dCwnd > (int)oldDCwnd) {
-                cwnd = (int) dCwnd;
-            }
+            cwnd = (int) dCwnd;
         }
         recordCwnd();
         if (ack == lastAck) {
@@ -149,8 +146,9 @@ public class SenderWindowViz {
 
         if (lastAckCount >= lastAckCountLimit) {
             ssthresh = cwnd / 2;
-            cwnd = ssthresh + 3;
+            cwnd = ssthresh;
             dCwnd = (double) cwnd;
+            System.out.println("ssthresh: " + ssthresh + " cwnd: " + cwnd);
 
             resendPacket(ack);
         }

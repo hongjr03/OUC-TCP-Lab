@@ -43,9 +43,9 @@ public class ReceiverWindow {
         }
         int idx = getIdx(seq);
         window[idx].setElem(packet, ReceiverFlag.BUFFERED.ordinal());
-        if (seq == base) {
-            return AckFlag.IS_BASE.ordinal();
-        }
+//        if (seq == base) {
+//            return AckFlag.IS_BASE.ordinal();
+//        }
         return AckFlag.ORDERED.ordinal();
     }
 

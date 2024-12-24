@@ -17,8 +17,8 @@ public class SenderWindowViz {
     private int ssthresh = 16;
 
     private UDT_Timer timer;
-    private final int delay = 1000;
-    private final int period = 1000;
+    private final int delay = 3000;
+    private final int period = 3000;
     private final TCP_Sender sender;
 
     private int lastAck = -1;
@@ -132,11 +132,8 @@ public class SenderWindowViz {
 
         // Update congestion window
         if (cwnd >= ssthresh) {
-            double oldDCwnd = dCwnd;
             dCwnd += (double) 1 / cwnd;
-            if ((int)dCwnd > (int)oldDCwnd) {
-                cwnd = (int) dCwnd;
-            }
+            cwnd = (int) dCwnd;
         }
         recordCwnd();
         if (ack == lastAck) {
@@ -150,7 +147,7 @@ public class SenderWindowViz {
             ssthresh = cwnd / 2;
             cwnd = 1;
             dCwnd = (double) cwnd;
-
+            recordCwnd();
             resendPacket(ack);
         }
         recordCwnd(); // Record cwnd change

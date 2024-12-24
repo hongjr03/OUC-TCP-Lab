@@ -18,8 +18,8 @@ public class SenderWindowViz {
     private int ssthresh = 16;
 
     private UDT_Timer timer;
-    private final int delay = 1000;
-    private final int period = 1000;
+    private final int delay = 3000;
+    private final int period = 3000;
     private final TCP_Sender sender;
 
     private int lastAck = -1;

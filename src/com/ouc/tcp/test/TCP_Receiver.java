@@ -16,7 +16,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
 
     private TCP_PACKET ackPack;    //回复的ACK报文段
     private final ReceiverWindow window = new ReceiverWindow(16);
-//    private UDT_Timer timer = new UDT_Timer();
+    private UDT_Timer timer = new UDT_Timer();
 
     /*构造函数*/
     public TCP_Receiver() {
@@ -47,9 +47,21 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
                     tcpH.setTh_sum(CheckSum.computeChkSum(ackPack));
                     packet = window.getPacketToDeliver();
                 }
+                if (timer != null) {
+                    timer.cancel();
+                    timer = new UDT_Timer();
+                    timer.schedule(
+                            new TimerTask() {
+                                public void run() {
+                                    reply(ackPack);    //回复ACK报文段
+                                }
+                            }, 500
+                    );
+                }
+            } else {
+                reply(ackPack);
             }
         }
-        reply(ackPack);    //回复ACK报文段
         // 错误包不回复 ACK
 
         System.out.println();

@@ -9,18 +9,11 @@ import java.util.concurrent.LinkedBlockingDeque;
 public class SenderWindow {
     private final LinkedBlockingDeque<SenderElem> window;
 
-    private int cwnd = 1;
-    private double dCwnd = 1.0;
-    private int ssthresh = 16;
-
+    private int size = 16;
     private UDT_Timer timer;
     private final int delay = 3000;
     private final int period = 3000;
     private final TCP_Sender sender;
-
-    private int lastAck = -1;
-    private int lastAckCount = 0;
-    private final int lastAckCountLimit = 3;
 
     public class GBN_RetransTask extends TimerTask {
         private final SenderWindow window;
@@ -49,7 +42,7 @@ public class SenderWindow {
     }
 
     public boolean isCwndFull() {
-        return window.size() >= cwnd;
+        return window.size() >= size;
     }
 
     public boolean isEmpty() {
@@ -100,35 +93,9 @@ public class SenderWindow {
             if (elem.getPacket().getTcpH().getTh_seq() <= ack) {
                 elem.ackPacket();
                 window.remove(elem);
-                if (cwnd < ssthresh) {
-                    cwnd++;
-                    dCwnd = cwnd;
-                }
                 resetTimer();
             }
         }
-
-
-        // 更新拥塞窗口
-        if (cwnd >= ssthresh) {
-            dCwnd += (double) 1 / cwnd;
-            cwnd = (int) dCwnd;
-        }
-
-        if (ack == lastAck) {
-            lastAckCount++;
-        } else {
-            lastAck = ack;
-            lastAckCount = 1;
-        }
-
-        if (lastAckCount >= lastAckCountLimit) {
-            ssthresh = cwnd / 2;
-            cwnd = 1;
-            dCwnd = (double) cwnd;
-            resendPacket(ack);
-        }
-
     }
 }
 

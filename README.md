@@ -21,7 +21,7 @@
 
 ## Tahoe 和 Reno 的说明
 
-SenderWindow 和 SenderWindowViz 的实现是一样的，只是 SenderWindowViz 记录了不同时刻的窗口大小，用于绘制窗口大小的变化图。
+SenderWindow 和 SenderWindowViz 的实现是一样的，只是 SenderWindowViz 记录了不同时刻的窗口大小，用于绘制窗口大小的变化图。对于cwnd慢开始和拥塞控制的处理有误，原因是每收到1个ACK并不意味着发出了1个包，这里需要修改。
 
 ## Star History
 

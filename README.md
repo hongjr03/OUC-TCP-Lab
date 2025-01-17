@@ -1,5 +1,7 @@
 # OUC 计算机网络 TCP 实验
 
+<img width="380" alt="image" src="https://github.com/user-attachments/assets/65e42855-c503-4521-ac7c-48e4ab9e5829" />
+
 本仓库为2024秋洪锋老师计算机网络课程的期末TCP课程设计，基于提供的 [RDT 1.0](https://github.com/hongjr03/OUC-TCP-Lab/tree/RDT1.0-initial)
 代码迭代实现了以下分支的协议。需要注意的是由于才疏学浅，实现的内容并不完全和协议相符，仅供参考，如有问题欢迎发 Issue 告知！
 
